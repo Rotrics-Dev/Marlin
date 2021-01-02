@@ -548,14 +548,23 @@ void GcodeSuite::M2101()
 		positon = parser.intval('P');
 		positon = scope_limit(1,positon,1023);
 		set_pos(SERO_1, positon);
-		HAL_Delay(100);		
+		// HAL_Delay(100);		
 	}
+
+	bool r_seen = parser.seen('R');
+	if(r_seen){
+		positon = parser.intval('R');
+		// positon = scope_limit(-512,positon,512);
+		set_relation_pos(SERO_1, positon);
+		// HAL_Delay(100);	
+	}	
+
 
 	bool e_seen = parser.seen('E');
 	if(e_seen){
 		e_flag = parser.intval('E');
 		set_enable(SERO_1,e_flag);
-		HAL_Delay(100);	
+		// HAL_Delay(100);	
 	}	
 
 	positon = read_pos(SERO_1);

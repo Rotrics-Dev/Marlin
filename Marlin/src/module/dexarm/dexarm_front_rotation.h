@@ -36,6 +36,8 @@ extern uint8_t cmd_buf[CMD_MAX_LEN];
 #define TORQUE_ENABLE_REG				0x18	//当前扭矩是否使能	读取1字节
 
 #define TARGET_POS_REG			0x1E	//旋转
+#define RELATION_POS_REG			0x1F	//旋转
+
 
 
 
@@ -59,6 +61,7 @@ enum sero_update
 
 void front_rotation_init(void);
 bool set_pos(int id,int val);
+bool set_relation_pos(int id,int val);
 void pos_demo_test();
 uint16_t set_motion_speed(uint8_t id,int val);
 int scope_limit(int min,int val,int max);

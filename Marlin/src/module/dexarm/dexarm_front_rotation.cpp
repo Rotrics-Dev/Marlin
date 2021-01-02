@@ -235,9 +235,8 @@ uint8_t set_servo_pos(uint8_t id,uint16_t pos)
 	return data_len+2;
 }
 
-data_typedef w_data_buf(uint8_t id,uint8_t cmd,uint8_t addr,uint16_t info)
+data_typedef w_data_buf(uint8_t id,uint8_t cmd,uint8_t addr,int16_t info)
 {
-
 	data_typedef data;
 	memset(&data,0,sizeof(data_typedef));
 	uint8_t index = 4;
@@ -271,7 +270,7 @@ void usart_get_flag_wait()
 		 if(outtime<0)
 		 {
 		 	MYSERIAL0.println("receive time out......\r\n");
-			front_rotation_init_flag = 0;
+			// front_rotation_init_flag = 0;
 		 	return ;
 		 }
 	}
@@ -542,6 +541,13 @@ bool set_pos(int id,int val)
 {
 	return write_info(id,TARGET_POS_REG,val);
 }
+
+// 设置相对位置
+bool set_relation_pos(int id,int val)
+{
+	return write_info(id,RELATION_POS_REG,val);
+}
+
 
 // 设置使能
 bool set_enable(int id,int val)
@@ -894,4 +900,3 @@ char rotation_model_rev_bin(char c)
 	}
 	return c;
 }
-
