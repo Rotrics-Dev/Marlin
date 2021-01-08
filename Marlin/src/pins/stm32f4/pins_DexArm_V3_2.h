@@ -52,7 +52,7 @@
   #if defined(USING_MT6701_POSITION_SENSOR)
     #define POSITION_SENSOR_I2C_ADDRESS 0x06              // MT6701
   #else
-    #define POSITION_SENSOR_I2C_ADDRESS 0x36              // AS5600
+    #define POSITION_SENSOR_I2C_ADDRESS 0x06//0x36              // AS5600
   #endif
 
 #endif
