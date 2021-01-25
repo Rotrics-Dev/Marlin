@@ -428,6 +428,15 @@ int scope_limit(int min,int val,int max)
 	return val;
 }
 
+float scope_limit_float(float min,float val,float max)
+{
+	if (val <= min) 
+	{val = min;}
+	else if(val >= max)
+	{val = max;}
+	return val;
+}
+
 //同步写入
 void sync_write()
 {
@@ -546,6 +555,12 @@ bool set_pos(int id,int val)
 bool set_relation_pos(int id,int val)
 {
 	return write_info(id,RELATION_POS_REG,val);
+}
+
+// 设置旋转
+bool set_rotation_pos(int id,int val)
+{
+	return write_info(id,ROTATION_REG,val);
 }
 
 

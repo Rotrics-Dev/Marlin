@@ -531,10 +531,12 @@ void GcodeSuite::M2100()
 extern uint8_t front_button_flag;
 void GcodeSuite::M2101()
 {
-	static uint16_t speed = 50, positon = 500;
+	static uint16_t speed = 0;
+	float positon = 0.0f;
 	static uint16_t torque_val = 1023;
 	static uint8_t e_flag = 0;
 	front_button_flag = 0;
+	int tempPos = 0;
 	
 	if(!front_rotation_init_flag){
 		front_rotation_init();
@@ -545,19 +547,30 @@ void GcodeSuite::M2101()
 
 	bool p_seen = parser.seen('P');
 	if(p_seen){
-		positon = parser.intval('P');
-		positon = scope_limit(1,positon,1023);
-		set_pos(SERO_1, positon);
+		positon = parser.floatval('P');
+		positon = scope_limit_float(0.0f,positon,360.0f);
+		
+		tempPos = round((positon * 2.84f));
+
+		set_pos(SERO_1, tempPos);
 		// HAL_Delay(100);		
 	}
 
 	bool r_seen = parser.seen('R');
 	if(r_seen){
-		positon = parser.intval('R');
+		positon = parser.floatval('R');
 		// positon = scope_limit(-512,positon,512);
-		set_relation_pos(SERO_1, positon);
+		tempPos = round((positon * 2.84f));
+		set_relation_pos(SERO_1, tempPos);
 		// HAL_Delay(100);	
 	}	
+
+	bool s_seen = parser.seen('S');
+	if(s_seen){
+		speed = parser.intval('S');
+		speed = scope_limit(1,speed,50);
+		set_rotation_pos(SERO_1,speed);
+	}
 
 
 	bool e_seen = parser.seen('E');
@@ -567,13 +580,14 @@ void GcodeSuite::M2101()
 		// HAL_Delay(100);	
 	}	
 
-	positon = read_pos(SERO_1);
+	tempPos = read_pos(SERO_1);
+	positon = (tempPos*100)/284;
 	HAL_Delay(100);
 
 
-	char str[30];
-	memset(&str,0,30);
-	sprintf(str,"surrent positon = %d",positon);
+	char str[50];
+	memset(&str,0,50);
+	sprintf(str,"surrent positon = %d",(int)positon);
 	MYSERIAL0.println(str);
 
 	MYSERIAL0.println("ok");
