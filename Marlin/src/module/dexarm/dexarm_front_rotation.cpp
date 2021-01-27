@@ -365,6 +365,7 @@ uint8_t ret_reg_count(uint8_t reg)
 		case TEMP_REG:			ret_val = 1;break;
 		case TORQUE_ENABLE_REG:	ret_val = 1;break;
 		case BONED_SPEED:		ret_val = 1;break;
+		case EDITION_REG:		ret_val = 1;break;
 
 		default:
 		break;
@@ -465,6 +466,12 @@ uint16_t read_vola(uint8_t id)
 uint16_t read_pos(uint8_t id)
 {
 	return read_info(id,POS_REG);
+}
+
+// 读取版本号
+uint16_t read_edition(uint8_t id)
+{
+	return read_info(id,EDITION_REG);
 }
 
 //读取扭矩是否使能

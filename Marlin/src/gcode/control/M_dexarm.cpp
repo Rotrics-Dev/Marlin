@@ -531,12 +531,13 @@ void GcodeSuite::M2100()
 extern uint8_t front_button_flag;
 void GcodeSuite::M2101()
 {
-	static uint16_t speed = 0;
+	static int speed = 0;
 	float positon = 0.0f;
 	static uint16_t torque_val = 1023;
 	static uint8_t e_flag = 0;
 	front_button_flag = 0;
 	int tempPos = 0;
+	uint8_t status_flag=0;
 	
 	if(!front_rotation_init_flag){
 		front_rotation_init();
@@ -553,23 +554,24 @@ void GcodeSuite::M2101()
 		tempPos = round((positon * 2.84f));
 
 		set_pos(SERO_1, tempPos);
-		// HAL_Delay(100);		
+		status_flag = 1;
 	}
 
 	bool r_seen = parser.seen('R');
 	if(r_seen){
 		positon = parser.floatval('R');
 		// positon = scope_limit(-512,positon,512);
-		tempPos = round((positon * 2.84f));
+		tempPos = (-1)*round((positon * 2.84f));
 		set_relation_pos(SERO_1, tempPos);
-		// HAL_Delay(100);	
+		status_flag = 1;
 	}	
 
 	bool s_seen = parser.seen('S');
 	if(s_seen){
 		speed = parser.intval('S');
-		speed = scope_limit(1,speed,50);
-		set_rotation_pos(SERO_1,speed);
+		speed = scope_limit(-100,speed,100);
+		set_rotation_pos(SERO_1,(-1)*speed);
+		status_flag = 1;
 	}
 
 
@@ -577,21 +579,47 @@ void GcodeSuite::M2101()
 	if(e_seen){
 		e_flag = parser.intval('E');
 		set_enable(SERO_1,e_flag);
-		// HAL_Delay(100);	
+		status_flag = 0;
 	}	
 
-	tempPos = read_pos(SERO_1);
-	positon = (tempPos*100)/284;
-	HAL_Delay(100);
+	if(status_flag){
+		tempPos = read_pos(SERO_1);
+		positon = (tempPos*100)/284;
+		HAL_Delay(100);
 
+		char str[50];
+		memset(&str,0,50);
+		sprintf(str,"surrent positon = %d",(int)positon);
+		MYSERIAL0.println(str);
+	}
 
-	char str[50];
-	memset(&str,0,50);
-	sprintf(str,"surrent positon = %d",(int)positon);
-	MYSERIAL0.println(str);
 
 	MYSERIAL0.println("ok");
 }
+
+void GcodeSuite::M2103()
+{
+	uint16_t edition=0;
+	
+	edition = read_edition(SERO_1);
+	HAL_Delay(100);
+
+	uint16_t a = edition/100;
+	if(a){
+		uint16_t b = (edition-100)/10;
+		uint16_t c = edition%10;
+
+		char str[50];
+		memset(&str,0,50);
+		sprintf(str,"Rotary Firmware V%d.%d.%d",a,b,c);
+		MYSERIAL0.println(str);		
+	}else {
+		MYSERIAL0.println("Rotary Firmware Read Faile");
+	}
+
+
+}
+
 //update front rotation model bin
 uint16_t front_rotation_model_bin_size = 0;
 void GcodeSuite::M2102()

@@ -30,6 +30,7 @@ extern uint8_t cmd_buf[CMD_MAX_LEN];
 #define MOTION_SPEED_REG 		0x20	//运动速度		读取2字节
 #define VOLTAGE_REG 			0x2A	//当前电压		读取1字节
 #define TEMP_REG		 		0x2B	//当前温度		读取1字节
+#define EDITION_REG				0x2C	//当前版本		读取1字节
 
 #define BONED_SPEED				0X04	//波特率		读取1字节
 
@@ -39,6 +40,7 @@ extern uint8_t cmd_buf[CMD_MAX_LEN];
 #define RELATION_POS_REG			0x1F	//旋转
 #define ROTATION_REG			0x1D	//旋转
 
+#define	EDITION	0x70		//1.1.2	= 112 = 0x70
 
 
 
@@ -72,6 +74,7 @@ bool set_enable(int id,int val);
 uint16_t set_torque_limt(uint8_t id,int val);
 uint16_t read_motion_speed(uint8_t id);
 uint16_t read_pos(uint8_t id);
+uint16_t read_edition(uint8_t id);
 void update_rotation_model(uint8_t flag,uint16_t bin_size,uint8_t bin[]);
 char rotation_model_rev_bin(char c);
 
