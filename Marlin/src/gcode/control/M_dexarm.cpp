@@ -537,7 +537,6 @@ void GcodeSuite::M2101()
 	static uint8_t e_flag = 0;
 	front_button_flag = 0;
 	int tempPos = 0;
-	uint8_t status_flag=0;
 	
 	if(!front_rotation_init_flag){
 		front_rotation_init();
@@ -554,7 +553,6 @@ void GcodeSuite::M2101()
 		tempPos = round((positon * 2.84f));
 
 		set_pos(SERO_1, tempPos);
-		status_flag = 1;
 	}
 
 	bool r_seen = parser.seen('R');
@@ -563,7 +561,6 @@ void GcodeSuite::M2101()
 		// positon = scope_limit(-512,positon,512);
 		tempPos = (-1)*round((positon * 2.84f));
 		set_relation_pos(SERO_1, tempPos);
-		status_flag = 1;
 	}	
 
 	bool s_seen = parser.seen('S');
@@ -571,7 +568,6 @@ void GcodeSuite::M2101()
 		speed = parser.intval('S');
 		speed = scope_limit(-100,speed,100);
 		set_rotation_pos(SERO_1,(-1)*speed);
-		status_flag = 1;
 	}
 
 
@@ -579,20 +575,16 @@ void GcodeSuite::M2101()
 	if(e_seen){
 		e_flag = parser.intval('E');
 		set_enable(SERO_1,e_flag);
-		status_flag = 0;
 	}	
 
-	if(status_flag){
-		tempPos = read_pos(SERO_1);
-		positon = (tempPos*100)/284;
-		HAL_Delay(100);
+	tempPos = read_pos(SERO_1);
+	positon = (tempPos*100)/284;
+	HAL_Delay(100);
 
-		char str[50];
-		memset(&str,0,50);
-		sprintf(str,"surrent positon = %d",(int)positon);
-		MYSERIAL0.println(str);
-	}
-
+	char str[50];
+	memset(&str,0,50);
+	sprintf(str,"surrent positon = %d",(int)positon);
+	MYSERIAL0.println(str);
 
 	MYSERIAL0.println("ok");
 }
