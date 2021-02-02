@@ -11,14 +11,13 @@
 #include "interrupt.h"
 #include "../../module/stepper/indirection.h"
 
-#define KEY_Pin GPIO_PIN_10
-#define KEY_GPIO_Port GPIOA
+
 #define KEY_EXTI_IRQn EXTI15_10_IRQn
 
 extern uint8_t usart_rev_ch;
 extern uint8_t front_rotation_init_flag;
 #define BUF_LEN 50
-extern uint8_t usart_rev_buf[BUF_LEN];
+// extern uint8_t usart_rev_buf[BUF_LEN];
 
 #define DATA_BUF_LEN	30
 typedef struct _r_data
@@ -112,7 +111,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE BEGIN USART1_Init 1 */
 	//1000000
-	//115200
+	//115200 117647
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 117647;
@@ -183,9 +182,10 @@ void front_button_callback()
 }
 
 void front_rotation_init(void){
+	pinMode(PA10, INPUT_PULLUP);
 	stm32_interrupt_enable(KEY_GPIO_Port,KEY_Pin,front_button_callback,GPIO_MODE_IT_RISING_FALLING);
 	MX_USART1_UART_Init();
-	HAL_Delay(100);
+	HAL_Delay(300);
 	front_button_flag = 1;
 }
 
@@ -235,9 +235,8 @@ uint8_t set_servo_pos(uint8_t id,uint16_t pos)
 	return data_len+2;
 }
 
-data_typedef w_data_buf(uint8_t id,uint8_t cmd,uint8_t addr,uint16_t info)
+data_typedef w_data_buf(uint8_t id,uint8_t cmd,uint8_t addr,int16_t info)
 {
-
 	data_typedef data;
 	memset(&data,0,sizeof(data_typedef));
 	uint8_t index = 4;
@@ -264,14 +263,14 @@ data_typedef w_data_buf(uint8_t id,uint8_t cmd,uint8_t addr,uint16_t info)
 
 void usart_get_flag_wait()
 {
-	int outtime = 1000*20;
+	int outtime = 1000*30;
 	while (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE) == RESET)
 	{
 		 outtime--;
 		 if(outtime<0)
 		 {
 		 	MYSERIAL0.println("receive time out......\r\n");
-			front_rotation_init_flag = 0;
+			// front_rotation_init_flag = 0;
 		 	return ;
 		 }
 	}
@@ -279,7 +278,7 @@ void usart_get_flag_wait()
 
 bool write_info(int id,uint8_t reg,int val)
 {
-
+	uint8_t send_num=0;
 	data_typedef temp;
 	uint8_t rev_buf[DATA_BUF_LEN];
 	memset(&temp,0,sizeof(data_typedef));
@@ -313,6 +312,13 @@ bool write_info(int id,uint8_t reg,int val)
 //		while (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE) == RESET);
 		usart_get_flag_wait();
 		HAL_UART_Receive(&huart1, rev_buf+4, rev_len, 1000);
+		send_num++;
+
+		if(send_num>1)
+		{
+			rev_buf[4] = 0;
+			MYSERIAL0.println("ERROR:send font model cmd fail!!!\r\n");
+		}		
 
 	}while (rev_buf[4]);//发送失败,重发
 	return true;
@@ -359,6 +365,7 @@ uint8_t ret_reg_count(uint8_t reg)
 		case TEMP_REG:			ret_val = 1;break;
 		case TORQUE_ENABLE_REG:	ret_val = 1;break;
 		case BONED_SPEED:		ret_val = 1;break;
+		case EDITION_REG:		ret_val = 1;break;
 
 		default:
 		break;
@@ -422,6 +429,15 @@ int scope_limit(int min,int val,int max)
 	return val;
 }
 
+float scope_limit_float(float min,float val,float max)
+{
+	if (val <= min) 
+	{val = min;}
+	else if(val >= max)
+	{val = max;}
+	return val;
+}
+
 //同步写入
 void sync_write()
 {
@@ -450,6 +466,12 @@ uint16_t read_vola(uint8_t id)
 uint16_t read_pos(uint8_t id)
 {
 	return read_info(id,POS_REG);
+}
+
+// 读取版本号
+uint16_t read_edition(uint8_t id)
+{
+	return read_info(id,EDITION_REG);
 }
 
 //读取扭矩是否使能
@@ -535,6 +557,19 @@ bool set_pos(int id,int val)
 {
 	return write_info(id,TARGET_POS_REG,val);
 }
+
+// 设置相对位置
+bool set_relation_pos(int id,int val)
+{
+	return write_info(id,RELATION_POS_REG,val);
+}
+
+// 设置旋转
+bool set_rotation_pos(int id,int val)
+{
+	return write_info(id,ROTATION_REG,val);
+}
+
 
 // 设置使能
 bool set_enable(int id,int val)
@@ -638,3 +673,252 @@ void bps_demo()
 
 }
 
+
+void usart_send_buf(UART_HandleTypeDef huart,uint8_t *pData,uint16_t len)
+{
+	HAL_HalfDuplex_EnableTransmitter(&huart);
+	HAL_UART_Transmit(&huart,pData,len,1000);
+	while( __HAL_UART_GET_FLAG(&huart,UART_FLAG_TC)==RESET){};
+	memset(&pData,0,len*sizeof(uint8_t));
+}
+
+void usart_rev_buf(UART_HandleTypeDef huart,uint8_t *pData,uint16_t len)
+{
+	HAL_HalfDuplex_EnableReceiver(&huart); 
+	while (__HAL_UART_GET_FLAG(&huart, UART_FLAG_RXNE) == RESET);
+	// usart_get_flag_wait();
+	HAL_UART_Receive(&huart, pData,len,1000);
+	memset(&pData,0,len*sizeof(uint8_t));
+}
+
+void read_dev_answer()
+{
+	uint8_t pData[10]={0};
+	usart_rev_buf(huart1,pData,4);
+     
+    if(strstr((const char *)pData, "ok") == NULL)
+	{
+		MYSERIAL0.println("answer fail!!!");
+	}
+	else{
+
+		MYSERIAL0.println("found,rotation model answer ok !!!");
+	}
+
+}
+
+uint8_t start_rev_bin = 0;
+int rev_bin_byte_num = 0;
+int rev_one_fps_dat_flag=0;
+#define PACK_SIZE	500
+char rev_buffer[500];
+char bin_buf[PACK_SIZE];
+int bin_size = 0;
+
+void clear_front_val()
+{
+	start_rev_bin = 0;
+	rev_bin_byte_num = 0;
+	rev_one_fps_dat_flag=0;
+	memset(rev_buffer,0,500);
+	memset(bin_buf,0,PACK_SIZE);
+	bin_size = 0;
+}
+
+
+void HexStrToByte(char* source,char* dest, int sourceLen)
+{
+    short i;
+    unsigned char highByte, lowByte;
+
+    for (i = 0; i < sourceLen; i += 2)
+    {
+        highByte = toupper(source[i]);
+        lowByte  = toupper(source[i + 1]);
+
+        if (highByte > 0x39)
+            highByte -= 0x37;
+        else
+            highByte -= 0x30;
+
+        if (lowByte > 0x39)
+            lowByte -= 0x37;
+        else
+            lowByte -= 0x30;
+
+        dest[i / 2] = (highByte << 4) | lowByte;
+    }
+    return ;
+}
+
+void build_one_fps(char buf[],uint16_t len)
+{
+	char str[30]={0};
+	static uint16_t offset=0;
+
+	static int pack_num = 0;
+	static int last_pack_size = 0;
+	static int pack_index = 0;
+
+	pack_num  = bin_size/PACK_SIZE;
+	last_pack_size  = bin_size%PACK_SIZE;
+
+	memcpy(bin_buf+offset,buf,len);
+
+	offset = offset + len;
+	// test print
+	// for(int i = 0;i<offset;i++)
+	// {
+	// 	sprintf(str,"0x%x",bin_buf[i]);
+	// 	MYSERIAL0.println(str);
+	// }
+
+	memset(str,0,30);
+	sprintf(str,"bin size: %d",offset);
+	MYSERIAL0.println(str);
+	//clear flag
+	rev_one_fps_dat_flag = 0;	
+	if(pack_index < pack_num)
+	{
+		if(offset >= PACK_SIZE)
+		{
+			usart_send_buf(huart1,(uint8_t *)bin_buf,PACK_SIZE);
+			read_dev_answer();
+
+			MYSERIAL0.println("pack_index ,500 char");
+			memset(bin_buf,0,500);
+			pack_index++;
+			offset = 0;
+		}
+	}
+	else{//last pack
+
+		if(offset >= last_pack_size)
+		{
+			usart_send_buf(huart1,(uint8_t *)bin_buf,last_pack_size);
+			read_dev_answer();
+
+			MYSERIAL0.println("last pack ,< 500 char");
+			memset(bin_buf,0,500);
+			pack_index++;
+			offset = 0;
+			start_rev_bin = 0;		
+		}
+	}
+
+	/*info print*/
+	memset(str,0,30);
+	sprintf(str,"pack_index: %d",pack_index);
+	MYSERIAL0.println(str);
+
+	memset(str,0,30);
+	sprintf(str,"pack_num: %d",pack_num);
+	MYSERIAL0.println(str);
+	
+	memset(str,0,30);
+	sprintf(str,"last_pack_size: %d",last_pack_size);
+	MYSERIAL0.println(str);
+
+
+}
+
+void build_bin_pack(char buf[])
+{
+	char str[30]={0};
+	char data[100];
+	uint16_t len = 0;
+	uint16_t index = 0;
+
+	HexStrToByte(buf,data, rev_bin_byte_num+1);
+
+	len = rev_bin_byte_num/2-1;
+	// print rev hex data
+	// for(int i = 0;i<len;i++)
+	// {
+	// 	sprintf(str,"0x%x",data[index++]);
+	// 	MYSERIAL0.println(str);
+	// }
+
+	memset(str,0,30);
+	sprintf(str,"bin size: %d",len);
+	MYSERIAL0.println(str);
+
+	build_one_fps(data,len);
+
+}
+
+void update_rotation_model(uint8_t flag,uint16_t len,uint8_t bin[])
+{
+	char str[30];
+	uint8_t enter_boot_cmd[4] = {0xFF,0xFF,0xEF,0xFF};  
+	switch(flag)
+	{
+		//enter boot
+		case ENTER_BOOT:
+				usart_send_buf(huart1,enter_boot_cmd,4);
+				delay(500);
+				MYSERIAL0.println("enter boot cmd");
+		break;
+		//receive bin size
+		case REV_SIZE:
+			
+			bin_size = len;
+			sprintf(str,"<%d>",bin_size);
+			MYSERIAL0.println(str);
+
+			usart_send_buf(huart1,(uint8_t *)str,strlen(str));
+			read_dev_answer();
+
+			start_rev_bin = 1;
+
+			memset(rev_buffer,0,500);
+		break;
+		//receive bin 
+		case REV_BIN:
+			if(start_rev_bin)
+			{
+				//wait one fps data ok
+				while (!rev_one_fps_dat_flag);
+
+				memset(str,0,30);
+				sprintf(str,"<rev:%d>",rev_bin_byte_num);
+				MYSERIAL0.println(str);
+				
+				build_bin_pack(rev_buffer);
+
+				memset(rev_buffer,0,500);
+				rev_bin_byte_num = 0;			
+			}
+		break;
+
+	}
+
+
+}
+
+
+
+char rotation_model_rev_bin(char c)
+{
+	if(start_rev_bin)
+	{
+		rev_buffer[rev_bin_byte_num++] = c;
+		//start
+		if(c=='<')
+		{
+			rev_bin_byte_num = 0;
+		}
+		//end
+		if(c=='>')
+		{
+			rev_one_fps_dat_flag = 1;
+		}
+			
+		if(rev_bin_byte_num>500)
+		{
+			rev_bin_byte_num =0;
+		}
+		
+	}
+	return c;
+}

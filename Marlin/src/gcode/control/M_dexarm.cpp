@@ -517,63 +517,119 @@ uint8_t front_rotation_init_flag = 0;
 //front rotation init
 void GcodeSuite::M2100()
 {
-	int init_speed = 20;
-	int init_position = 10;
+	// int init_speed = 20;
+	// int init_position = 10;
 	front_rotation_init();
-	set_motion_speed(SERO_1, init_speed);
-	set_pos(SERO_1, init_position);
-	pos_demo_test();
-	front_rotation_init_flag = 1;
+	// set_motion_speed(SERO_1, init_speed);
+	// set_pos(SERO_1, init_position);
+	// pos_demo_test();
+	clear_front_val();
+	// front_rotation_init_flag = 0;
+	set_enable(SERO_1,0);
+	HAL_Delay(100);	
 }
-
+extern uint8_t front_button_flag;
 void GcodeSuite::M2101()
 {
-	static uint16_t speed = 50, positon = 500;
+	static int speed = 0;
+	float positon = 0.0f;
 	static uint16_t torque_val = 1023;
+	static uint8_t e_flag = 0;
+	front_button_flag = 0;
+	int tempPos = 0;
 	
 	if(!front_rotation_init_flag){
 		front_rotation_init();
 		MYSERIAL0.println("front rotation init ok......\r\n");
 		front_rotation_init_flag = 1;
 	}
+	stm32_interrupt_disable(KEY_GPIO_Port,KEY_Pin);
+
+	bool p_seen = parser.seen('P');
+	if(p_seen){
+		positon = parser.floatval('P');
+		positon = scope_limit_float(0.0f,positon,360.0f);
+		
+		tempPos = round((positon * 2.84f));
+
+		set_pos(SERO_1, tempPos);
+	}
+
+	bool r_seen = parser.seen('R');
+	if(r_seen){
+		positon = parser.floatval('R');
+		// positon = scope_limit(-512,positon,512);
+		tempPos = (-1)*round((positon * 2.84f));
+		set_relation_pos(SERO_1, tempPos);
+	}	
 
 	bool s_seen = parser.seen('S');
 	if(s_seen){
 		speed = parser.intval('S');
-		speed = scope_limit(1,speed,1023);
-		set_motion_speed(SERO_1, speed);
-		HAL_Delay(100);		
+		speed = scope_limit(-100,speed,100);
+		set_rotation_pos(SERO_1,(-1)*speed);
 	}
 
-	bool t_seen = parser.seen('T');
-	if(t_seen){
-		torque_val = parser.intval('T');
-		torque_val = scope_limit(1,torque_val,1023);
-		set_torque_limt(SERO_1,torque_val);
-		HAL_Delay(100);	
-	}
 
-	bool p_seen = parser.seen('P');
-	if(p_seen){
-		positon = parser.intval('P');
-		positon = scope_limit(1,positon,1023);
-		set_pos(SERO_1, positon);
-		HAL_Delay(100);		
-	}
+	bool e_seen = parser.seen('E');
+	if(e_seen){
+		e_flag = parser.intval('E');
+		set_enable(SERO_1,e_flag);
+	}	
 
-	positon = read_pos(SERO_1);
+	tempPos = read_pos(SERO_1);
+	positon = (tempPos*100)/284;
 	HAL_Delay(100);
-	speed = read_motion_speed(SERO_1);
-	HAL_Delay(100);	
 
-	char str[30];
-	memset(&str,0,30);
-	sprintf(str,"surrent positon = %d",positon);
-	MYSERIAL0.println(str);
-	sprintf(str,"surrent speed = %d",speed);
+	char str[50];
+	memset(&str,0,50);
+	sprintf(str,"current positon = %d",(int)positon);
 	MYSERIAL0.println(str);
 
 	MYSERIAL0.println("ok");
+}
+
+void GcodeSuite::M2103()
+{
+	uint16_t edition=0;
+	
+	edition = read_edition(SERO_1);
+	HAL_Delay(100);
+
+	uint16_t a = edition/100;
+	if(a){
+		uint16_t b = (edition-100)/10;
+		uint16_t c = edition%10;
+
+		char str[50];
+		memset(&str,0,50);
+		sprintf(str,"Rotary Firmware V%d.%d.%d",a,b,c);
+		MYSERIAL0.println(str);		
+	}else {
+		MYSERIAL0.println("Rotary Firmware Read Failed");
+	}
+
+
+}
+
+//update front rotation model bin
+uint16_t front_rotation_model_bin_size = 0;
+void GcodeSuite::M2102()
+{
+	uint8_t update_step = 0;//defult enter boot
+	
+	bool update_flag = parser.seen('U');
+	if(update_flag){
+		update_step = parser.intval('U');	
+		if(update_step == REV_SIZE)
+		{
+			front_rotation_model_bin_size = parser.intval('S');	
+		}
+		
+	}
+
+	update_rotation_model(update_step,front_rotation_model_bin_size,(uint8_t *)rev_buffer);
+
 }
 
 void GcodeSuite::M2012()

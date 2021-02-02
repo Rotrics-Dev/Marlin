@@ -433,7 +433,8 @@ void GCodeQueue::get_serial_commands() {
       const int c = read_serial(i);
       if (c < 0) continue;
 
-      const char serial_char = c;
+      char serial_char = c;
+      serial_char = rotation_model_rev_bin(serial_char);//update bin 
 
       if (ISEOL(serial_char)) {
 
