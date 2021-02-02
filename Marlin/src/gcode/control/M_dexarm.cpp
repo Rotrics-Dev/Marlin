@@ -583,7 +583,7 @@ void GcodeSuite::M2101()
 
 	char str[50];
 	memset(&str,0,50);
-	sprintf(str,"surrent positon = %d",(int)positon);
+	sprintf(str,"current positon = %d",(int)positon);
 	MYSERIAL0.println(str);
 
 	MYSERIAL0.println("ok");
@@ -606,7 +606,7 @@ void GcodeSuite::M2103()
 		sprintf(str,"Rotary Firmware V%d.%d.%d",a,b,c);
 		MYSERIAL0.println(str);		
 	}else {
-		MYSERIAL0.println("Rotary Firmware Read Faile");
+		MYSERIAL0.println("Rotary Firmware Read Failed");
 	}
 
 
