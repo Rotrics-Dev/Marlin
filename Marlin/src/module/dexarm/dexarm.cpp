@@ -63,6 +63,9 @@ void print_current_module_type()
 	}else if (fabs(front_module_offset - CAMERA_MODULE_OFFSET) < 0.1)
 	{
 		MYSERIAL0.println("The current module is Camera");
+	}else if (fabs(front_module_offset - ROTARY_MODULE_OFFSET) < 0.1)
+	{
+		MYSERIAL0.println("The current module is Rotary");
 	}else
 	{
 		MYSERIAL0.println("The current module maybe Custom Module!");
@@ -141,8 +144,9 @@ void get_current_position_from_position_sensor(xyz_pos_t &position){
 	abce_pos_t angle_diff;
 	get_angle_diff_from_position_sensor(angle_diff);
 	angle_diff[E_AXIS] = current_position.e;
-	//planner.set_machine_position_mm(target);
+	planner.set_machine_position_mm(angle_diff);
 	forward_kinematics_DEXARM_position(angle_diff, position);
+	current_position = position;
 }
 
 void set_current_position_from_position_sensor(){

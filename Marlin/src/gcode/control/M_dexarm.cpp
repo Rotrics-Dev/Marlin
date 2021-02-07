@@ -22,6 +22,7 @@ typedef enum
 } Update_Need_ConfirmTypeDef;
 
 int need_confirm_state = NO_NEED_CONFIRM;
+extern uint8_t front_button_flag;
 
 void re_calibration(float target_distance, float actual_distance)
 {
@@ -88,6 +89,22 @@ void GcodeSuite::M888(void)
 			(void)settings.save();
 			update_dexarm_offset();
 			planner.buffer_line(current_position, 30, active_extruder);
+			break;
+		}
+		case 6:
+		{
+			front_module_offset = ROTARY_MODULE_OFFSET;
+			//laser_fan_flag = false;
+			//OUT_WRITE(HEATER_0_PIN, LOW);
+			MYSERIAL0.println("THE CURRENT MODULE IS ROTARY");
+			(void)settings.save();
+			update_dexarm_offset();
+			planner.buffer_line(current_position, 30, active_extruder);
+
+			front_rotation_init();
+			clear_front_val();
+			set_enable(SERO_1,0);
+			HAL_Delay(100);
 			break;
 		}
 		case 10:
@@ -527,15 +544,15 @@ void GcodeSuite::M2100()
 	// front_rotation_init_flag = 0;
 	set_enable(SERO_1,0);
 	HAL_Delay(100);	
+	front_rotation_init_flag = 1;
 }
-extern uint8_t front_button_flag;
 void GcodeSuite::M2101()
 {
 	static int speed = 0;
 	float positon = 0.0f;
 	static uint16_t torque_val = 1023;
 	static uint8_t e_flag = 0;
-	front_button_flag = 0;
+	//front_button_flag = 0;
 	int tempPos = 0;
 	
 	if(!front_rotation_init_flag){
@@ -543,7 +560,7 @@ void GcodeSuite::M2101()
 		MYSERIAL0.println("front rotation init ok......\r\n");
 		front_rotation_init_flag = 1;
 	}
-	stm32_interrupt_disable(KEY_GPIO_Port,KEY_Pin);
+	//stm32_interrupt_disable(KEY_GPIO_Port,KEY_Pin);
 
 	bool p_seen = parser.seen('P');
 	if(p_seen){

@@ -156,34 +156,44 @@ static void MX_GPIO_Init(void)
 }
 
 uint8_t front_button_flag = 0;
+uint8_t last_value = 0;
 void front_button_callback()
-{	
-	if(front_button_flag)
+{
+	if (front_button_flag)
 	{
-		MYSERIAL0.println("Front button is pressed!\r\n");
-
-		if(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin) == GPIO_PIN_RESET)
+		//MYSERIAL0.println("Front button is pressed!\r\n");
+		if (last_value == 1)
 		{
-			MYSERIAL0.println(" level down!\r\n");
-			DISABLE_AXIS_X();
-			DISABLE_AXIS_Y();
-			DISABLE_AXIS_Z();
-
+			if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET)
+			{
+				SERIAL_ECHOLNPAIR("Button Pressed");
+				DISABLE_AXIS_X();
+				DISABLE_AXIS_Y();
+				DISABLE_AXIS_Z();
+				last_value = 0;
+			}
 		}
-		else if(HAL_GPIO_ReadPin(KEY_GPIO_Port,KEY_Pin) == GPIO_PIN_SET)
+		if (last_value == 0)
 		{
-			MYSERIAL0.println(" level up!\r\n");
-			ENABLE_AXIS_X();
-			ENABLE_AXIS_Y();
-			ENABLE_AXIS_Z();		
-		}		
+			if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_SET)
+			{
+				SERIAL_ECHOLNPAIR("Button Released");
+				ENABLE_AXIS_X();
+				ENABLE_AXIS_Y();
+				ENABLE_AXIS_Z();
+				xyz_pos_t position;
+				get_current_position_from_position_sensor(position);
+				SERIAL_ECHOLNPAIR("X:", position.x, " Y:", position.y, " Z:", position.z);
+				last_value = 1;
+			}
+		}
 	}
-	
 }
 
 void front_rotation_init(void){
 	pinMode(PA10, INPUT_PULLUP);
 	stm32_interrupt_enable(KEY_GPIO_Port,KEY_Pin,front_button_callback,GPIO_MODE_IT_RISING_FALLING);
+	last_value = 1;
 	MX_USART1_UART_Init();
 	HAL_Delay(300);
 	front_button_flag = 1;
