@@ -646,6 +646,11 @@ private:
   static void M1112();
   static void M1113();
   static void M1114();
+  static void M1115();
+  static void M1116();
+  static void M1117();
+  static void M1118();
+  static void M1119();
   static void M2000();
   static void M2001();
   static void M2002();

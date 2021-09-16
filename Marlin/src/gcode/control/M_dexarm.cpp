@@ -449,6 +449,37 @@ void GcodeSuite::M1114()
     forward_kinematics_DEXARM(angle);
 }
 
+//M1115-M1116, Rotrcis Studio Scratch command
+void GcodeSuite::M1115()
+{
+	//send "item" to Rotrcis Studio
+	MYSERIAL0.println("item");
+}
+
+void GcodeSuite::M1116()
+{
+	//send "red" to Rotrcis Studio
+	MYSERIAL0.println("red");
+}
+
+void GcodeSuite::M1117()
+{
+	//send "green" to Rotrcis Studio
+	MYSERIAL0.println("green");
+}
+
+void GcodeSuite::M1118()
+{
+	//send "blue" to Rotrcis Studio
+	MYSERIAL0.println("blue");
+}
+
+void GcodeSuite::M1119()
+{
+	//send "yellow" to Rotrcis Studio
+	MYSERIAL0.println("yellow");
+}
+
 void GcodeSuite::M2000()
 {
     SERIAL_ECHOPAIR("M2000\r\n");
@@ -548,6 +579,7 @@ void GcodeSuite::M2100()
 }
 void GcodeSuite::M2101()
 {
+	planner.synchronize();
 	static int speed = 0;
 	float positon = 0.0f;
 	static uint16_t torque_val = 1023;
