@@ -733,6 +733,7 @@ int m1112_position(xyz_pos_t &position)
 				fix_num = 0;
 				return 0;
 			}
+			/*
 			else if (fix_num > 3 && diff_sum > 3.0f)		
 			{
 				//disable_all_steppers();
@@ -749,6 +750,7 @@ int m1112_position(xyz_pos_t &position)
 				fix_num = 0;				
 				return 0;
 			}
+*/			
 			rotate_angle_diff(angle_diff);
 			planner.synchronize();		
 
