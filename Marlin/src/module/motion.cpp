@@ -218,6 +218,9 @@ inline void report_more_positions() {
     scara_report_positions();
   #endif
   #if IS_DEXARM
+    xyz_pos_t position;
+	  get_current_position_from_position_sensor(position);
+	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z);
     dexarm_report_positions();
   #endif
 }
