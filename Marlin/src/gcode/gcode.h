@@ -642,6 +642,7 @@ private:
   static void M1001();
   static void M1002();
   static void M1003();
+  static void M1004();
   static void M1111();
   static void M1112();
   static void M1113();

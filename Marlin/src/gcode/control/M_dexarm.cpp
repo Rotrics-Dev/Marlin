@@ -364,30 +364,6 @@ void GcodeSuite::M896(void)
 	}
 }
 
-void GcodeSuite::M1000()
-{
-	planner.synchronize(); 
-	MYSERIAL2.println("QB00");
-}
-
-void GcodeSuite::M1001()
-{
-	planner.synchronize(); 
-	MYSERIAL2.println("QB01");
-}
-
-void GcodeSuite::M1002()
-{
-	planner.synchronize(); 
-	MYSERIAL2.println("QB02");
-}
-
-void GcodeSuite::M1003()
-{
-	planner.synchronize(); 
-	MYSERIAL2.println("QB03");
-}
-
 void GcodeSuite::M1111()
 {
 	planner.synchronize();

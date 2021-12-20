@@ -902,9 +902,8 @@ void setup() {
       serial_connect_timeout = millis() + 1000UL;
       while (!MYSERIAL1 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #endif
-    MYSERIAL2.begin(115200);
   #endif
-
+  dexarm_air_pump.init();
   SERIAL_ECHOLNPGM("start");
   SERIAL_ECHO_START();
 

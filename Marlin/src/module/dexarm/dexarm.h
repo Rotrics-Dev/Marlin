@@ -7,6 +7,7 @@
 #include "dexarm_front_rotation.h"
 #include "dexarm_conveyor_belt.h"
 #include "dexarm_sliding_rail.h"
+#include "dexarm_air_pump.h"
 
 //Dexarm config
 extern int calibration_position_sensor_value[3];
