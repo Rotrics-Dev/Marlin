@@ -565,6 +565,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 2011: M2011(); break;                                    // M2011
 	    case 2012: M2012(); break;                                    // M2012
       case 2013: M2013(); break;                                    // M2013
+      case 2014: M2014(); break;                                    // M2014
       case 2100: M2100(); break;                                    // M2100
       case 2101: M2101(); break;                                    // M2101
       case 2102: M2102(); break;                                    // M2102
