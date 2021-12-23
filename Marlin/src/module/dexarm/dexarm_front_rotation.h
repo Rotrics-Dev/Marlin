@@ -67,6 +67,8 @@ class DexarmRotation
 public:
 	void init(void);
 	void init(uint8_t sero_id);
+	void loop(void);
+	void report_pos(void);
 	bool set_pos(int val);
 	bool set_relation_pos(int val);
 	bool set_rotation_pos(int val);
@@ -109,5 +111,9 @@ private:
 private:
 	bool inited = false;
 	uint8_t id = SERO_1;
+	bool is_move = false;
+	bool enabled = false;
+	int last_positon = -1;
+	uint32_t loop_time = 0;
 };
 extern DexarmRotation dexarm_rotation;

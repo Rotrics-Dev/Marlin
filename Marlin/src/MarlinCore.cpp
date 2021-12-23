@@ -1199,6 +1199,6 @@ void loop() {
     queue.advance();
 
     endstops.event_handler();
-
+    dexarm_loop();
   } while (ENABLED(__AVR__)); // Loop forever on slower (AVR) boards
 }

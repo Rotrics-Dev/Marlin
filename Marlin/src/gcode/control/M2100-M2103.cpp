@@ -24,51 +24,33 @@ void GcodeSuite::M2101()
     dexarm_rotation.init();
     MYSERIAL0.println("front rotation init ok......\r\n");
   }
-
-  bool p_seen = parser.seen('P');
-  if (p_seen)
+  if (parser.seen('P'))
   {
     positon = parser.floatval('P');
     positon = dexarm_rotation.scope_limit_float(0.0f, positon, 360.0f);
-
     tempPos = round((positon * 2.84f));
-
     dexarm_rotation.set_pos(tempPos);
   }
-
-  bool r_seen = parser.seen('R');
-  if (r_seen)
+  else if (parser.seen('R'))
   {
     positon = parser.floatval('R');
     tempPos = (-1) * round((positon * 2.84f));
     dexarm_rotation.set_relation_pos(tempPos);
   }
-
-  bool s_seen = parser.seen('S');
-  if (s_seen)
+  else if (parser.seen('S'))
   {
     speed = parser.intval('S');
     speed = dexarm_rotation.scope_limit(-100, speed, 100);
     dexarm_rotation.set_rotation_pos((-1) * speed);
   }
-
-  bool e_seen = parser.seen('E');
-  if (e_seen)
+  else if (parser.seen('E'))
   {
     e_flag = parser.intval('E');
     dexarm_rotation.enable(e_flag);
   }
-
-  tempPos = dexarm_rotation.read_pos();
-  positon = (tempPos * 100) / 284;
-  HAL_Delay(100);
-
-  char str[50];
-  memset(&str, 0, 50);
-  sprintf(str, "current positon = %d", (int)positon);
-  MYSERIAL0.println(str);
-
-  MYSERIAL0.println("ok");
+  else {
+    dexarm_rotation.report_pos();
+  }
 }
 
 // update front rotation model bin

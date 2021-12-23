@@ -875,3 +875,7 @@ void dexarm_report_positions() {
   SERIAL_ECHOLNPAIR("DEXARM Theta A:", planner.get_axis_position_degrees(A_AXIS), "  Theta B:", planner.get_axis_position_degrees(B_AXIS), "  Theta C:", planner.get_axis_position_degrees(C_AXIS));
   SERIAL_EOL();
 }
+
+void dexarm_loop() {
+	dexarm_rotation.loop();
+}

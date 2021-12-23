@@ -490,24 +490,28 @@ uint16_t DexarmRotation::set_bps(int val)
 // 设置位置
 bool DexarmRotation::set_pos(int val)
 {
+	is_move = true;
 	return write_info(TARGET_POS_REG, val);
 }
 
 // 设置相对位置
 bool DexarmRotation::set_relation_pos(int val)
 {
+	is_move = true;
 	return write_info(RELATION_POS_REG, val);
 }
 
 // 设置旋转
 bool DexarmRotation::set_rotation_pos(int val)
 {
+	is_move = true;
 	return write_info(ROTATION_REG, val);
 }
 
 // 设置使能
 bool DexarmRotation::enable(int val)
 {
+	enabled = val;
 	return write_info(TORQUE_ENABLE_REG, val);
 }
 
@@ -758,4 +762,26 @@ char DexarmRotation::recv_bin(char c)
 		}
 	}
 	return c;
+}
+
+void DexarmRotation::report_pos(void) {
+	int positon = dexarm_rotation.read_pos();
+	SERIAL_ECHOLNPAIR("current positon = ", positon);
+}
+
+void DexarmRotation::loop(void) {
+	if (loop_time > millis()) {
+		return;
+	}
+	loop_time = millis() + 200;
+	if (is_move) {
+		int positon = dexarm_rotation.read_pos();
+  	positon = (positon * 100) / 284;
+		if (last_positon == positon) {
+			is_move = false;
+			SERIAL_ECHOLNPAIR("Movement: Completed");
+			report_pos();
+		}
+		last_positon = positon;
+	}
 }
