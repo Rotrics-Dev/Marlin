@@ -46,24 +46,28 @@ move_mode_t G0_MOVE_MODE = FAST_MODE;
 		LOOP_XYZE(i) { current_position[i] = current_position_init[i]; } \
 	}
 
+bool is_module_type(float module_type) {
+	return fabs(front_module_offset - module_type) < 0.1;
+}
+
 void print_current_module_type()
 {
-	if (fabs(front_module_offset - PEN_MODULE_OFFSET) < 0.1)
+	if (is_module_type(MODULE_TYPE_PEN))
 	{
 		MYSERIAL0.println("The current module is PEN");
-	}else if (fabs(front_module_offset - LASER_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_LASER))
 	{
 		MYSERIAL0.println("The current module is LASER");
-	}else if (fabs(front_module_offset - PUMP_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_PUMP))
 	{
 		MYSERIAL0.println("The current module is PUMP");
-	}else if (fabs(front_module_offset - _3D_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_3D))
 	{
 		MYSERIAL0.println("The current module is 3D");
-	}else if (fabs(front_module_offset - CAMERA_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_CAMERA))
 	{
 		MYSERIAL0.println("The current module is Camera");
-	}else if (fabs(front_module_offset - ROTARY_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_ROTARY))
 	{
 		MYSERIAL0.println("The current module is Rotary");
 	}else
@@ -874,6 +878,13 @@ bool dexarm_position_is_reachable(const xyz_pos_t &position)
 void dexarm_report_positions() {
   SERIAL_ECHOLNPAIR("DEXARM Theta A:", planner.get_axis_position_degrees(A_AXIS), "  Theta B:", planner.get_axis_position_degrees(B_AXIS), "  Theta C:", planner.get_axis_position_degrees(C_AXIS));
   SERIAL_EOL();
+}
+
+void dexarm_init() {
+	module_position_init();
+	if (is_module_type(MODULE_TYPE_ROTARY)) {
+		dexarm_rotation.init();
+	}
 }
 
 void dexarm_loop() {

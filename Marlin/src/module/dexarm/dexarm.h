@@ -53,5 +53,6 @@ void inverse_kinematics(const xyz_pos_t &raw);
 bool dexarm_position_is_reachable(const xyz_pos_t &position);
 
 void dexarm_report_positions();
+void dexarm_init();
 void dexarm_loop();
-
+bool is_module_type(float module_type);

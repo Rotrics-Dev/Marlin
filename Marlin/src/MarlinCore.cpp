@@ -1168,7 +1168,7 @@ void setup() {
 
   position_sensor_init();
   check_update_flag();
-  module_position_init();
+  dexarm_init();
 
   SETUP_LOG("setup() completed.");
 }
