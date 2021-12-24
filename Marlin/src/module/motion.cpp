@@ -221,7 +221,7 @@ inline void report_more_positions() {
     xyz_pos_t position;
 	  get_current_position_from_position_sensor(position);
 	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z);
-    if (is_module_type(MODULE_TYPE_ROTARY)) {
+    if (dexarm_rotation.is_init()) {
       SERIAL_ECHOLNPAIR("rotation:", dexarm_rotation.read_pos());
     }
     dexarm_report_positions();
