@@ -220,7 +220,7 @@ void DexarmRotation::usart_get_flag_wait()
 	}
 }
 
-bool DexarmRotation::write_info(uint8_t reg, int val)
+bool DexarmRotation::write_info(uint8_t reg, int16_t val)
 {
 	uint8_t send_num = 0;
 	data_typedef temp;
@@ -415,7 +415,9 @@ void sync_write()
 // 读取位置
 uint16_t DexarmRotation::read_pos()
 {
-	return read_info(POS_REG);
+	int positon = read_info(POS_REG);
+	positon = (positon * 100) / 284 % 360;
+	return (uint16_t)positon;
 }
 
 // 读取版本号
@@ -770,17 +772,21 @@ void DexarmRotation::report_pos(void) {
 }
 
 void DexarmRotation::loop(void) {
+	static uint8_t count = 0;
 	if (loop_time > millis()) {
 		return;
 	}
-	loop_time = millis() + 200;
+	loop_time = millis() + 150;
 	if (is_move) {
 		int positon = dexarm_rotation.read_pos();
-  	positon = (positon * 100) / 284;
 		if (last_positon == positon) {
-			is_move = false;
-			SERIAL_ECHOLNPAIR("Movement: Completed");
-			report_pos();
+			count ++;
+			if (count == 2) {
+				is_move = false;
+				count = 0;
+				SERIAL_ECHOLNPAIR("Movement: Completed");
+				report_pos();
+			}
 		}
 		last_positon = positon;
 	}

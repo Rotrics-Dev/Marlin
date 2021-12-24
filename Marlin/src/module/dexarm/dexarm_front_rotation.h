@@ -97,7 +97,7 @@ private:
 	uint16_t check_sum(data_typedef data);
 	data_typedef w_data_buf(uint8_t cmd, uint8_t addr, int16_t info);
 	void usart_get_flag_wait();
-	bool write_info(uint8_t reg, int val);
+	bool write_info(uint8_t reg, int16_t val);
 	data_typedef r_data_buf(uint8_t cmd, uint8_t addr, int addr_len);
 	uint8_t ret_reg_count(uint8_t reg);
 	uint16_t read_info(uint8_t reg);
