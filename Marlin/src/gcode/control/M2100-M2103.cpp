@@ -17,7 +17,6 @@ void GcodeSuite::M2101()
   static int speed = 0;
   float positon = 0.0f;
   static uint8_t e_flag = 0;
-  int tempPos = 0;
 
   if (!dexarm_rotation.is_init())
   {
@@ -27,15 +26,12 @@ void GcodeSuite::M2101()
   if (parser.seen('P'))
   {
     positon = parser.floatval('P');
-    positon = dexarm_rotation.scope_limit_float(0.0f, positon, 360.0f);
-    tempPos = round((positon * 2.84f));
-    dexarm_rotation.set_pos(tempPos);
+    dexarm_rotation.set_pos(positon);
   }
   else if (parser.seen('R'))
   {
     positon = parser.floatval('R');
-    tempPos = (-1) * round((positon * 2.84f));
-    dexarm_rotation.set_relation_pos(tempPos);
+    dexarm_rotation.set_relation_pos(positon);
   }
   else if (parser.seen('S'))
   {

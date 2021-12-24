@@ -69,8 +69,8 @@ public:
 	void init(uint8_t sero_id);
 	void loop(void);
 	void report_pos(void);
-	bool set_pos(int val);
-	bool set_relation_pos(int val);
+	bool set_pos(float val);
+	bool set_relation_pos(float val);
 	bool set_rotation_pos(int val);
 	uint16_t set_motion_speed(int val);
 	int scope_limit(int min, int val, int max);
@@ -115,5 +115,7 @@ private:
 	bool enabled = false;
 	int last_positon = -1;
 	uint32_t loop_time = 0;
+	uint16_t target_pos = 0;
+	bool relation = false;
 };
 extern DexarmRotation dexarm_rotation;

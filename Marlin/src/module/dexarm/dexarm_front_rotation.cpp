@@ -419,6 +419,8 @@ uint16_t DexarmRotation::read_pos()
 {
 	int positon = read_info(POS_REG);
 	positon = (positon * 100) / 284 % 360;
+	if (relation)
+		positon = positon ? 360 - positon: 0;  // The sensor direction is reversed from the actual direction
 	return (uint16_t)positon;
 }
 
@@ -492,16 +494,36 @@ uint16_t DexarmRotation::set_bps(int val)
 }
 
 // 设置位置
-bool DexarmRotation::set_pos(int val)
+bool DexarmRotation::set_pos(float val)
 {
 	is_move = true;
+	relation = false;
+	val = dexarm_rotation.scope_limit_float(0.0f, val, 360.0f);
+	target_pos = val;
+  val = round((val * 2.84f));
 	return write_info(TARGET_POS_REG, val);
 }
 
+int get_pos_diff(uint16_t target, uint16_t current) {
+	int16_t diff = 0;
+	if (target < 90 && current > 270) {
+		diff = (target - current + 360) % 360;
+	} else if (target > 270 && current < 90) {
+		diff = -((current - target + 360) % 360);
+	} else {
+		diff = target - current;
+	}
+	return diff;
+}
+
 // 设置相对位置
-bool DexarmRotation::set_relation_pos(int val)
+bool DexarmRotation::set_relation_pos(float val)
 {
-	is_move = true;
+	relation = is_move = true;
+	uint16_t cur_pos = read_pos();
+	int16_t diff = get_pos_diff(target_pos, cur_pos);
+	target_pos = (target_pos + 360 + (int)val) % 360;
+	val = (-1) * round(((val + diff) * 2.84f));
 	return write_info(RELATION_POS_REG, val);
 }
 
@@ -769,8 +791,11 @@ char DexarmRotation::recv_bin(char c)
 }
 
 void DexarmRotation::report_pos(void) {
-	int positon = dexarm_rotation.read_pos();
-	SERIAL_ECHOLNPAIR("current positon = ", positon);
+	SERIAL_ECHOPAIR("current positon =");
+	if (is_move)
+		SERIAL_ECHOLNPAIR("", read_pos());
+	else
+		SERIAL_ECHOLNPAIR("", target_pos);
 }
 
 void DexarmRotation::loop(void) {
