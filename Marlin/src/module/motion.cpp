@@ -219,7 +219,11 @@ inline void report_more_positions() {
   #endif
   #if IS_DEXARM
     xyz_pos_t position;
-	  get_current_position_from_position_sensor(position);
+    if (planner.has_blocks_queued()) {
+	    get_current_position_from_position_sensor(position);
+    } else {
+      position = current_position;
+    }
 	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z);
     if (dexarm_rotation.is_init()) {
       SERIAL_ECHOLNPAIR("rotation:", dexarm_rotation.read_pos());
