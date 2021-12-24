@@ -282,7 +282,6 @@ float teach_play_jump_height = 50.0;
 float teach_play_feedrate = 50.0;
 void GcodeSuite::M896(void)
 {
-	int x, y, z;
 	bool check_height_param = parser.seen('H');
 	if (check_height_param)
 	{

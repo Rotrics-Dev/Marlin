@@ -32,7 +32,7 @@ bool laser_fan_flag = false;
 bool position_init_flag = false; //DexArm will not move without position init.
 bool current_position_flag = false;
 
-float current_position_init[XYZE] = {START_X, START_Y + dexarm_offset, START_Z, 0.0};
+float current_position_init[XYZE] = {START_X, START_Y, START_Z, 0.0};
 
 bool INVERT_E0_DIR = true;
 extern bool home_z_before_xy;
@@ -44,6 +44,7 @@ move_mode_t G0_MOVE_MODE = FAST_MODE;
 	{                                                                    \
 		current_position_flag = false;                                   \
 		LOOP_XYZE(i) { current_position[i] = current_position_init[i]; } \
+		current_position[Y_AXIS] += dexarm_offset; \
 	}
 
 bool is_module_type(float module_type) {
@@ -200,17 +201,6 @@ void process_encoder(int x, int y, int z){
 	pos.e = planner.get_axis_position_mm(E_AXIS);
 	current_position = pos;
 
-	planner.synchronize();
-	abc_float_t deg = {
-		planner.get_axis_position_degrees(A_AXIS),
-		planner.get_axis_position_degrees(B_AXIS),
-		planner.get_axis_position_degrees(C_AXIS)};
-	/*
-	SERIAL_ECHOLNPAIR(
-		"Current Angle a=", deg[A_AXIS],
-		" b=", deg[B_AXIS],
-		" c=", deg[C_AXIS]);
-	//*/
 	planner.synchronize();
 }
 
@@ -395,20 +385,12 @@ int position_M1111()
 			target[C_AXIS] = 0;
 			target[E_AXIS] = current_position.e;
 			LOOP_XYZE(i) { current_position[i] = current_position_init[i];}
+			current_position[Y_AXIS] += dexarm_offset;
 			sync_plan_position();
 			planner.set_machine_position_mm(target);
 
 			planner.synchronize();
-			abc_float_t deg = {
-				planner.get_axis_position_degrees(A_AXIS),
-				planner.get_axis_position_degrees(B_AXIS),
-				planner.get_axis_position_degrees(C_AXIS)};
 			fix_num = 0;
-			/*SERIAL_ECHOLNPAIR(
-				"Current Angle a=", deg[A_AXIS],
-				" b=", deg[B_AXIS],
-				" c=", deg[C_AXIS]);
-			//*/
 
 			return 1;
 		}
@@ -682,17 +664,7 @@ int m1112_position(xyz_pos_t &position)
 			planner.set_machine_position_mm(target);
 
 			planner.synchronize();
-			abc_float_t deg = {
-				planner.get_axis_position_degrees(A_AXIS),
-				planner.get_axis_position_degrees(B_AXIS),
-				planner.get_axis_position_degrees(C_AXIS)};
 			fix_num = 0;
-			/*
-			SERIAL_ECHOLNPAIR(
-				"Current Angle a=", deg[A_AXIS],
-				" b=", deg[B_AXIS],
-				" c=", deg[C_AXIS]);
-			//*/
 			return 1;
 		}
 		else
@@ -784,16 +756,6 @@ int m1113_position(xyz_pos_t &position)
 	planner.set_machine_position_mm(target);
 
 	planner.synchronize();
-	abc_float_t deg = {
-		planner.get_axis_position_degrees(A_AXIS),
-		planner.get_axis_position_degrees(B_AXIS),
-		planner.get_axis_position_degrees(C_AXIS)};
-	/*	
-	SERIAL_ECHOLNPAIR(
-		"Current Angle a=", deg[A_AXIS],
-		" b=", deg[B_AXIS],
-		" c=", deg[C_AXIS]);
-	//*/
 	return 1;
 }
 

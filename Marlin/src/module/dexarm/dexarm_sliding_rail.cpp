@@ -11,7 +11,6 @@
 static bool sliding_rail_homed = false;
 
 void sliding_rail_home(feedRate_t home_feedrate_high=30, feedRate_t home_feedrate_low=10, int16_t homing_threshold_first=60, int16_t homing_threshold_second=30) {
-  abce_pos_t target;
   sensorless_t stealth_states;
   feedRate_t old_feedrate;
   
