@@ -638,6 +638,7 @@ private:
   static void M894();
   static void M895();
   static void M896();
+  static void M897();
   static void M1000();
   static void M1001();
   static void M1002();
