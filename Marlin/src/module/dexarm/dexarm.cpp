@@ -150,16 +150,11 @@ void get_current_position_from_position_sensor(xyz_pos_t &position){
 	angle_diff[E_AXIS] = current_position.e;
 	planner.set_machine_position_mm(angle_diff);
 	forward_kinematics_DEXARM_position(angle_diff, position);
-	current_position = position;
 }
 
 void set_current_position_from_position_sensor(){
-	abce_pos_t angle_diff;
-	get_angle_diff_from_position_sensor(angle_diff);
-	angle_diff[E_AXIS] = current_position.e;
-	planner.set_machine_position_mm(angle_diff);
 	xyz_pos_t position;
-	forward_kinematics_DEXARM_position(angle_diff, position);
+	get_current_position_from_position_sensor(position);
 	current_position = position;
 }
 
