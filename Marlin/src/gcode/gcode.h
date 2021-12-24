@@ -507,6 +507,7 @@ private:
   //#if HAS_CUTTER
     static void M3_M4(const bool is_M4);
     static void M5();
+    static void M6();
   //#endif
 
   #if ENABLED(COOLANT_CONTROL)
