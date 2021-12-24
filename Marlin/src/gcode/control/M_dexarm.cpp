@@ -519,7 +519,12 @@ void GcodeSuite::M2005()
 
 void GcodeSuite::M2006()
 {
-
+	SERIAL_ECHO("E home:");
+	if(is_sliding_rail_homed()) {
+		SERIAL_ECHOLN("Yes");
+	} else {
+		SERIAL_ECHOLN("No");
+	}
 }
 
 void GcodeSuite::M2007()
