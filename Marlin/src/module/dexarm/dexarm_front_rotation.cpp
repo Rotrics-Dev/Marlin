@@ -163,6 +163,8 @@ void DexarmRotation::init(uint8_t sero_id)
 	last_value = 1;
 	MX_USART1_UART_Init();
 	HAL_Delay(300);
+	write_info(TARGET_POS_REG, 0);
+	target_pos = 0;
 	inited = true;
 }
 
