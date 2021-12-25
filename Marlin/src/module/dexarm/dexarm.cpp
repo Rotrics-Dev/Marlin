@@ -842,6 +842,7 @@ void dexarm_init() {
 	if (is_module_type(MODULE_TYPE_ROTARY)) {
 		dexarm_rotation.init();
 	}
+	dexarm_air_pump.init();
 }
 
 void dexarm_loop() {

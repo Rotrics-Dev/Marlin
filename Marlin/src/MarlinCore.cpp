@@ -903,7 +903,7 @@ void setup() {
       while (!MYSERIAL1 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #endif
   #endif
-  dexarm_air_pump.init();
+
   SERIAL_ECHOLNPGM("start");
   SERIAL_ECHO_START();
 
