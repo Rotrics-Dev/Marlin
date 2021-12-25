@@ -27,11 +27,12 @@ void ConveyorBelt::turn_off() {
 }
 
 void ConveyorBelt::report_status() {
+  feedrate *= 60;
   if (feedrate) {
     if (dir) {
-      SERIAL_ECHOLNPAIR("Conveyor belt forward ", feedrate, "mm/s ");
+      SERIAL_ECHOLNPAIR("Conveyor belt forward ", feedrate, "mm/min ");
     } else {
-      SERIAL_ECHOLNPAIR("Conveyor belt backward ", feedrate, "mm/s ");
+      SERIAL_ECHOLNPAIR("Conveyor belt backward ", feedrate, "mm/min ");
     }
   } else {
     SERIAL_ECHOLNPAIR("Conveyor belt stop");
