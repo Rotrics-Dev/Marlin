@@ -791,7 +791,7 @@ char DexarmRotation::recv_bin(char c)
 }
 
 void DexarmRotation::report_pos(void) {
-	SERIAL_ECHOPAIR("current positon =");
+	SERIAL_ECHOPAIR("current positon = ");
 	if (is_move)
 		SERIAL_ECHOLNPAIR("", read_pos());
 	else
