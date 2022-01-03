@@ -902,7 +902,6 @@ void setup() {
       serial_connect_timeout = millis() + 1000UL;
       while (!MYSERIAL1 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
     #endif
-    MYSERIAL2.begin(115200);
   #endif
 
   SERIAL_ECHOLNPGM("start");
@@ -1169,7 +1168,7 @@ void setup() {
 
   position_sensor_init();
   check_update_flag();
-  module_position_init();
+  dexarm_init();
 
   SETUP_LOG("setup() completed.");
 }
@@ -1200,6 +1199,6 @@ void loop() {
     queue.advance();
 
     endstops.event_handler();
-
+    dexarm_loop();
   } while (ENABLED(__AVR__)); // Loop forever on slower (AVR) boards
 }

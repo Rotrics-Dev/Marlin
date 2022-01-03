@@ -8,8 +8,9 @@
 #include "../endstops.h"
 #include "dexarm.h"
 
+static bool sliding_rail_homed = false;
+
 void sliding_rail_home(feedRate_t home_feedrate_high=30, feedRate_t home_feedrate_low=10, int16_t homing_threshold_first=60, int16_t homing_threshold_second=30) {
-  abce_pos_t target;
   sensorless_t stealth_states;
   feedRate_t old_feedrate;
   
@@ -78,4 +79,9 @@ void sliding_rail_home(feedRate_t home_feedrate_high=30, feedRate_t home_feedrat
   SERIAL_ECHOLNPAIR("Move Away E Axis 2 end");
 
   feedrate_mm_s = old_feedrate;
+  sliding_rail_homed = true;
+}
+
+bool is_sliding_rail_homed() {
+  return sliding_rail_homed;
 }

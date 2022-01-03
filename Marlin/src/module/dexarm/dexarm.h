@@ -7,6 +7,7 @@
 #include "dexarm_front_rotation.h"
 #include "dexarm_conveyor_belt.h"
 #include "dexarm_sliding_rail.h"
+#include "dexarm_air_pump.h"
 
 //Dexarm config
 extern int calibration_position_sensor_value[3];
@@ -52,4 +53,6 @@ void inverse_kinematics(const xyz_pos_t &raw);
 bool dexarm_position_is_reachable(const xyz_pos_t &position);
 
 void dexarm_report_positions();
-
+void dexarm_init();
+void dexarm_loop();
+bool is_module_type(float module_type);

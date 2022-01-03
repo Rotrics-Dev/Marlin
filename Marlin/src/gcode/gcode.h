@@ -507,6 +507,7 @@ private:
   //#if HAS_CUTTER
     static void M3_M4(const bool is_M4);
     static void M5();
+    static void M6();
   //#endif
 
   #if ENABLED(COOLANT_CONTROL)
@@ -638,10 +639,12 @@ private:
   static void M894();
   static void M895();
   static void M896();
+  static void M897();
   static void M1000();
   static void M1001();
   static void M1002();
   static void M1003();
+  static void M1004();
   static void M1111();
   static void M1112();
   static void M1113();
@@ -663,6 +666,7 @@ private:
   static void M2011();
   static void M2012();
   static void M2013();
+  static void M2014();
   static void M2100();
   static void M2101();
   static void M2102();

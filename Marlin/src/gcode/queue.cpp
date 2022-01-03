@@ -434,7 +434,7 @@ void GCodeQueue::get_serial_commands() {
       if (c < 0) continue;
 
       char serial_char = c;
-      serial_char = rotation_model_rev_bin(serial_char);//update bin 
+      serial_char = dexarm_rotation.recv_bin(serial_char);//update bin 
 
       if (ISEOL(serial_char)) {
 

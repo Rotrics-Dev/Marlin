@@ -32,7 +32,7 @@ bool laser_fan_flag = false;
 bool position_init_flag = false; //DexArm will not move without position init.
 bool current_position_flag = false;
 
-float current_position_init[XYZE] = {START_X, START_Y + dexarm_offset, START_Z, 0.0};
+float current_position_init[XYZE] = {START_X, START_Y, START_Z, 0.0};
 
 bool INVERT_E0_DIR = true;
 extern bool home_z_before_xy;
@@ -44,26 +44,31 @@ move_mode_t G0_MOVE_MODE = FAST_MODE;
 	{                                                                    \
 		current_position_flag = false;                                   \
 		LOOP_XYZE(i) { current_position[i] = current_position_init[i]; } \
+		current_position[Y_AXIS] += dexarm_offset; \
 	}
+
+bool is_module_type(float module_type) {
+	return fabs(front_module_offset - module_type) < 0.1;
+}
 
 void print_current_module_type()
 {
-	if (fabs(front_module_offset - PEN_MODULE_OFFSET) < 0.1)
+	if (is_module_type(MODULE_TYPE_PEN))
 	{
 		MYSERIAL0.println("The current module is PEN");
-	}else if (fabs(front_module_offset - LASER_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_LASER))
 	{
 		MYSERIAL0.println("The current module is LASER");
-	}else if (fabs(front_module_offset - PUMP_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_PUMP))
 	{
 		MYSERIAL0.println("The current module is PUMP");
-	}else if (fabs(front_module_offset - _3D_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_3D))
 	{
 		MYSERIAL0.println("The current module is 3D");
-	}else if (fabs(front_module_offset - CAMERA_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_CAMERA))
 	{
 		MYSERIAL0.println("The current module is Camera");
-	}else if (fabs(front_module_offset - ROTARY_MODULE_OFFSET) < 0.1)
+	}else if (is_module_type(MODULE_TYPE_ROTARY))
 	{
 		MYSERIAL0.println("The current module is Rotary");
 	}else
@@ -146,16 +151,11 @@ void get_current_position_from_position_sensor(xyz_pos_t &position){
 	angle_diff[E_AXIS] = current_position.e;
 	planner.set_machine_position_mm(angle_diff);
 	forward_kinematics_DEXARM_position(angle_diff, position);
-	current_position = position;
 }
 
 void set_current_position_from_position_sensor(){
-	abce_pos_t angle_diff;
-	get_angle_diff_from_position_sensor(angle_diff);
-	angle_diff[E_AXIS] = current_position.e;
-	planner.set_machine_position_mm(angle_diff);
 	xyz_pos_t position;
-	forward_kinematics_DEXARM_position(angle_diff, position);
+	get_current_position_from_position_sensor(position);
 	current_position = position;
 }
 
@@ -201,17 +201,6 @@ void process_encoder(int x, int y, int z){
 	pos.e = planner.get_axis_position_mm(E_AXIS);
 	current_position = pos;
 
-	planner.synchronize();
-	abc_float_t deg = {
-		planner.get_axis_position_degrees(A_AXIS),
-		planner.get_axis_position_degrees(B_AXIS),
-		planner.get_axis_position_degrees(C_AXIS)};
-	/*
-	SERIAL_ECHOLNPAIR(
-		"Current Angle a=", deg[A_AXIS],
-		" b=", deg[B_AXIS],
-		" c=", deg[C_AXIS]);
-	//*/
 	planner.synchronize();
 }
 
@@ -396,20 +385,12 @@ int position_M1111()
 			target[C_AXIS] = 0;
 			target[E_AXIS] = current_position.e;
 			LOOP_XYZE(i) { current_position[i] = current_position_init[i];}
+			current_position[Y_AXIS] += dexarm_offset;
 			sync_plan_position();
 			planner.set_machine_position_mm(target);
 
 			planner.synchronize();
-			abc_float_t deg = {
-				planner.get_axis_position_degrees(A_AXIS),
-				planner.get_axis_position_degrees(B_AXIS),
-				planner.get_axis_position_degrees(C_AXIS)};
 			fix_num = 0;
-			/*SERIAL_ECHOLNPAIR(
-				"Current Angle a=", deg[A_AXIS],
-				" b=", deg[B_AXIS],
-				" c=", deg[C_AXIS]);
-			//*/
 
 			return 1;
 		}
@@ -683,17 +664,7 @@ int m1112_position(xyz_pos_t &position)
 			planner.set_machine_position_mm(target);
 
 			planner.synchronize();
-			abc_float_t deg = {
-				planner.get_axis_position_degrees(A_AXIS),
-				planner.get_axis_position_degrees(B_AXIS),
-				planner.get_axis_position_degrees(C_AXIS)};
 			fix_num = 0;
-			/*
-			SERIAL_ECHOLNPAIR(
-				"Current Angle a=", deg[A_AXIS],
-				" b=", deg[B_AXIS],
-				" c=", deg[C_AXIS]);
-			//*/
 			return 1;
 		}
 		else
@@ -785,16 +756,6 @@ int m1113_position(xyz_pos_t &position)
 	planner.set_machine_position_mm(target);
 
 	planner.synchronize();
-	abc_float_t deg = {
-		planner.get_axis_position_degrees(A_AXIS),
-		planner.get_axis_position_degrees(B_AXIS),
-		planner.get_axis_position_degrees(C_AXIS)};
-	/*	
-	SERIAL_ECHOLNPAIR(
-		"Current Angle a=", deg[A_AXIS],
-		" b=", deg[B_AXIS],
-		" c=", deg[C_AXIS]);
-	//*/
 	return 1;
 }
 
@@ -874,4 +835,16 @@ bool dexarm_position_is_reachable(const xyz_pos_t &position)
 void dexarm_report_positions() {
   SERIAL_ECHOLNPAIR("DEXARM Theta A:", planner.get_axis_position_degrees(A_AXIS), "  Theta B:", planner.get_axis_position_degrees(B_AXIS), "  Theta C:", planner.get_axis_position_degrees(C_AXIS));
   SERIAL_EOL();
+}
+
+void dexarm_init() {
+	module_position_init();
+	if (is_module_type(MODULE_TYPE_ROTARY)) {
+		dexarm_rotation.init();
+	}
+	dexarm_air_pump.init();
+}
+
+void dexarm_loop() {
+	dexarm_rotation.loop();
 }

@@ -372,6 +372,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 3: M3_M4(false); break;                              // M3: Turn ON Laser | Spindle (clockwise), set Power | Speed
         case 4: M3_M4(true ); break;                              // M4: Turn ON Laser | Spindle (counter-clockwise), set Power | Speed
         case 5: M5(); break;                                      // M5: Turn OFF Laser | Spindle
+        case 6: M6(); break;                                      // M6: Laser status
       //#endif
 
       #if ENABLED(COOLANT_CONTROL)
@@ -539,10 +540,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 894: M894(); break;                                    // M894
       case 895: M895(); break;                                    // M895
       case 896: M896(); break;                                    // M896
+      case 897: M897(); break;                                    // M897
       case 1000: M1000(); break;                                    // M1000
       case 1001: M1001(); break;                                    // M1001
       case 1002: M1002(); break;                                    // M1002
       case 1003: M1003(); break;                                    // M1003
+      case 1004: M1004(); break;                                    // M1004
       case 1111: M1111(); break;                                    // M1111
       case 1112: M1112(); break;                                    // M1112
       case 1113: M1113(); break;                                    // M1113
@@ -564,6 +567,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 2011: M2011(); break;                                    // M2011
 	    case 2012: M2012(); break;                                    // M2012
       case 2013: M2013(); break;                                    // M2013
+      case 2014: M2014(); break;                                    // M2014
       case 2100: M2100(); break;                                    // M2100
       case 2101: M2101(); break;                                    // M2101
       case 2102: M2102(); break;                                    // M2102

@@ -218,6 +218,17 @@ inline void report_more_positions() {
     scara_report_positions();
   #endif
   #if IS_DEXARM
+    xyz_pos_t position;
+    if (planner.has_blocks_queued()) {
+	    get_current_position_from_position_sensor(position);
+    } else {
+      position = current_position;
+    }
+	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z);
+    if (dexarm_rotation.is_init()) {
+      SERIAL_ECHO("rotation ");
+      dexarm_rotation.report_pos();
+    }
     dexarm_report_positions();
   #endif
 }

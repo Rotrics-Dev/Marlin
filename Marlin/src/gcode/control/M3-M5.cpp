@@ -133,4 +133,16 @@ void GcodeSuite::M5() {
       #endif
     }
 }
+
+// get laser status
+void GcodeSuite::M6() {
+	const uint8_t p = thermalManager.get_fan_speed();
+  SERIAL_ECHO("Laser ");
+  if (p) {
+    SERIAL_ECHOLN("on");
+  } else {
+    SERIAL_ECHOLN("off");
+  }
+  SERIAL_ECHOLNPAIR("Laser output:", p);
+}
 //#endif // HAS_CUTTER

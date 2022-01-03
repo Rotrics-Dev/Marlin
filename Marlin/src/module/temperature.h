@@ -516,6 +516,7 @@ class Temperature {
       #define FANS_LOOP(I) LOOP_L_N(I, FAN_COUNT)
 
       static void set_fan_speed(const uint8_t target, const uint16_t speed);
+      static uint8_t get_fan_speed(const uint8_t target=0) {return fan_speed[target];}
 
       #if EITHER(PROBING_FANS_OFF, ADVANCED_PAUSE_FANS_PAUSE)
         static bool fans_paused;
