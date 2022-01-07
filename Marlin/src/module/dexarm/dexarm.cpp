@@ -91,6 +91,8 @@ void module_position_init()
 		laser_protection_enable_flag = true;
 		//MYSERIAL0.println("The current module is LASER");
 	}
+	enable_all_steppers();
+	set_current_position_from_position_sensor();
 }
 
 int get_position_sensor_diff(int target_position, int current_position)
@@ -160,6 +162,7 @@ void set_current_position_from_position_sensor(){
 	planner.set_machine_position_mm(angle_diff);
 	forward_kinematics_DEXARM_position(angle_diff, position);
 	current_position = position;
+	position_init_flag = true;
 }
 
 void process_encoder(int x, int y, int z){
