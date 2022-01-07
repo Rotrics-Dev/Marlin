@@ -318,6 +318,10 @@ void quickstop_stepper() {
   sync_plan_position();
 }
 
+void planner_quickstop() {
+  planner.quick_stop();
+}
+
 void enable_e_steppers() {
   #define _ENA_E(N) ENABLE_AXIS_E##N();
   REPEAT(E_STEPPERS, _ENA_E)

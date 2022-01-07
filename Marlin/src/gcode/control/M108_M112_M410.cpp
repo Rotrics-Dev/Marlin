@@ -22,11 +22,11 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if DISABLED(EMERGENCY_PARSER)
 
 #include "../gcode.h"
 #include "../../MarlinCore.h" // for wait_for_heatup, kill, quickstop_stepper
-
+#include "../../module/dexarm/dexarm.h"
+#if DISABLED(EMERGENCY_PARSER)
 /**
  * M108: Stop the waiting for heaters in M109, M190, M303. Does not affect the target temperature.
  */
@@ -44,6 +44,8 @@ void GcodeSuite::M112() {
   kill(M112_KILL_STR, nullptr, true);
 }
 
+#endif // !EMERGENCY_PARSER
+
 /**
  * M410: Quickstop - Abort all planned moves
  *
@@ -52,6 +54,7 @@ void GcodeSuite::M112() {
  */
 void GcodeSuite::M410() {
   quickstop_stepper();
+  set_current_position_from_position_sensor();
 }
 
-#endif // !EMERGENCY_PARSER
+
