@@ -257,16 +257,20 @@ void GcodeSuite::M893(void)
 
 void GcodeSuite::M894(void)
 {
-	int x, y, z;
-	bool check_param = parser.seen('X') & parser.seen('Y') & parser.seen('Z');
-	if (check_param)
-	{
-		MYSERIAL0.println("Param check is all ok");
-		x = parser.floatval('X', 999);
-		y = parser.floatval('Y', 999);
-		z = parser.floatval('Z', 999);
-		process_encoder(x, y, z);
+	int xyz[3] = {0};
+	planner.synchronize();
+	LOOP_ABC(axis) { xyz[axis] = position_sensor_value_read(axis); }
+
+	if (parser.seen('X')) {
+		xyz[X_AXIS] = parser.floatval('X');
 	}
+	if (parser.seen('Y')) {
+		xyz[Y_AXIS] = parser.floatval('Y');
+	}
+	if (parser.seen('Z')) {
+		xyz[Z_AXIS] = parser.floatval('Z');
+	}
+	process_encoder(xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
 }
 
 void GcodeSuite::M895(void)
