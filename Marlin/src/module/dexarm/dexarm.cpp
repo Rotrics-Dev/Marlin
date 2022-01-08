@@ -10,6 +10,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "dexarm.h"
 #include "../planner.h"
+#include "../temperature.h"
 
 int calibration_position_sensor_value[3]; //Set by M889
 int door_open_message_counter;
@@ -847,6 +848,9 @@ void dexarm_init() {
 	module_position_init();
 	if (is_module_type(MODULE_TYPE_ROTARY)) {
 		dexarm_rotation.init();
+	}
+	if (!is_module_type(_3D_MODULE_OFFSET)) {
+		thermalManager.allow_cold_extrude = true;
 	}
 	dexarm_air_pump.init();
 }

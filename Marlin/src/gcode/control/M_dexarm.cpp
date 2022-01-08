@@ -13,6 +13,7 @@
 #include "../../module/planner.h"
 #include "../../module/stepper.h"
 #include "../../module/endstops.h"
+#include "../../module/temperature.h"
 
 typedef enum
 {
@@ -152,6 +153,8 @@ void GcodeSuite::M888(void)
 		}
 		}
 		destination = current_position;
+		// Only 3DP does extrusion temperature protection
+		thermalManager.allow_cold_extrude = !is_module_type(MODULE_TYPE_3D);
 	}
 	else
 	{
