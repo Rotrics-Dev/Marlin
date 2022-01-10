@@ -94,6 +94,7 @@ void module_position_init()
 	}
 	enable_all_steppers();
 	set_current_position_from_position_sensor();
+	m1112_position(current_position);
 }
 
 int get_position_sensor_diff(int target_position, int current_position)
