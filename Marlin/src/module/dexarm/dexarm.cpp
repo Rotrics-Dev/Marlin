@@ -48,6 +48,10 @@ move_mode_t G0_MOVE_MODE = FAST_MODE;
 		current_position[Y_AXIS] += dexarm_offset; \
 	}
 
+float dexarm_apply_leveling(xyz_pos_t position) {
+	return (x_axis_scaling_factor * position.x + y_axis_scaling_factor * (position.y - 300));
+}
+
 bool is_module_type(float module_type) {
 	return fabs(front_module_offset - module_type) < 0.1;
 }
@@ -94,7 +98,8 @@ void module_position_init()
 	}
 	enable_all_steppers();
 	set_current_position_from_position_sensor();
-	m1112_position(current_position);
+	xyze_pos_t position = current_position;
+	m1112_position(position);
 }
 
 int get_position_sensor_diff(int target_position, int current_position)
@@ -163,6 +168,7 @@ void set_current_position_from_position_sensor(){
 	angle_diff[E_AXIS] = current_position.e;
 	planner.set_machine_position_mm(angle_diff);
 	forward_kinematics_DEXARM_position(angle_diff, position);
+	position.z -= dexarm_apply_leveling(position);
 	current_position = position;
 	position_init_flag = true;
 }
@@ -504,7 +510,7 @@ char inverse_kinematics_dexarm_xy_legace(const xyz_pos_t &position, abc_pos_t &a
 	float z = position.z;
 
 	//apply_leveling
-	z += (x_axis_scaling_factor * x + y_axis_scaling_factor * (y - 300));
+	z += dexarm_apply_leveling(position);
 
 	float tmps = sqrt(x * x + y * y);
 
@@ -560,7 +566,7 @@ char inverse_kinematics_dexarm(const xyz_pos_t &position, abc_pos_t &angle)
 	float z = position.z;
 
 	//apply_leveling
-	z += (x_axis_scaling_factor * x + y_axis_scaling_factor * (y - 300));
+	z += dexarm_apply_leveling(position);
 
 	float tmps = sqrt(x * x + y * y);
 
