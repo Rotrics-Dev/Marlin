@@ -221,6 +221,7 @@ inline void report_more_positions() {
     xyz_pos_t position;
     if (planner.has_blocks_queued()) {
 	    get_current_position_from_position_sensor(position);
+      position.z -= dexarm_apply_leveling(position);
     } else {
       position = current_position;
     }
