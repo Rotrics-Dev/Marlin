@@ -2744,6 +2744,14 @@ bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, con
   #endif
 } // buffer_line()
 
+bool Planner::buffer_angle(const float &a, const float &b, const float &c, const feedRate_t &fr_mm_s) {
+  delta.a = a;
+  delta.b = b;
+  delta.c = c;
+  float mm = 0;
+  return buffer_segment(delta.a, delta.b, delta.c, current_position.e, fr_mm_s, 0, mm);
+}
+
 /**
  * Directly set the planner ABC position (and stepper positions)
  * converting mm (or angles for SCARA) into steps.

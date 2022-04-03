@@ -37,36 +37,11 @@
 
 #include "../../module/dexarm/dexarm.h"
 
-extern xyze_pos_t destination;
-
 void GcodeSuite::G100() {
-  #define TEST_STEP_DISTANCE 3
-  #define CALC_LIMIT(axis) \
-      safe_distance = parser.value_bool() ? TEST_STEP_DISTANCE : -TEST_STEP_DISTANCE; \
-      while (dexarm_position_is_reachable(xyz)) { \
-        xyz.axis += safe_distance; \
-      } \
-      xyz.axis -= safe_distance; \
-      is_seen = true;
-
-  xyze_pos_t xyz = current_position;
-  int8_t safe_distance;  // mm
-  bool is_seen = false;
-  if (IsRunning()) {
-    if (parser.seenval('X')) {
-      CALC_LIMIT(x);
-    } else if (parser.seenval('Y')) {
-      CALC_LIMIT(y);
-    }  else if (parser.seenval('Z')) {
-      CALC_LIMIT(z);
-    }
-    if (is_seen) {
-      destination = xyz;
-      SERIAL_ECHOLNPAIR("MOVE TO LIMIT x:", destination[X_AXIS], 
-                          " y:", destination[Y_AXIS], " z:", destination[Z_AXIS]);
-      if (parser.linearval('F') > 0)
-        feedrate_mm_s = parser.value_feedrate();
-      prepare_line_to_destination();
-    }
+  if (parser.seenval('P')) {
+    gamepad_status_e status = (gamepad_status_e)parser.byteval('P');
+    SERIAL_ECHOLNPAIR("set gamepad mode to ", status);
+    gamepad_control.set_status(status);
   }
+
 }

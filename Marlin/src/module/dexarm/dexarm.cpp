@@ -864,4 +864,5 @@ void dexarm_init() {
 
 void dexarm_loop() {
 	dexarm_rotation.loop();
+	gamepad_control.loop();
 }

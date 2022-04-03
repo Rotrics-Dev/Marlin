@@ -723,6 +723,8 @@ class Planner {
       );
     }
 
+    static bool buffer_angle(const float &a, const float &b, const float &c, const feedRate_t &fr_mm_s);
+
     /**
      * Set the planner.position and individual stepper positions.
      * Used by G92, G28, G29, and other procedures.
