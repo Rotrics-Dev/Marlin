@@ -27,7 +27,7 @@
 
 #define BOARD_INFO_NAME "DexArm 3.2"
 #define HARDWARE_VERSION "Hardware V3.2\r\n"
-#define FIRMWARE_VERSION "Firmware V2.4.0\r\n"
+#define FIRMWARE_VERSION "Firmware V2.4.1\r\n"
 
 // Use one of these or SDCard-based Emulation will be used
 //#define SRAM_EEPROM_EMULATION   // Use BackSRAM-based EEPROM emulation
