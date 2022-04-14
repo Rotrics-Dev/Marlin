@@ -99,7 +99,7 @@ void module_position_init()
 	enable_all_steppers();
 	set_current_position_from_position_sensor();
 	xyze_pos_t position = current_position;
-	m1112_position(position);
+	planner.set_position_mm(position);
 }
 
 int get_position_sensor_diff(int target_position, int current_position)
