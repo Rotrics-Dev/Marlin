@@ -34,7 +34,7 @@ bool position_init_flag = false; //DexArm will not move without position init.
 bool current_position_flag = false;
 
 float current_position_init[XYZE] = {START_X, START_Y, START_Z, 0.0};
-
+float dexarm_z_offset = 0;
 bool INVERT_E0_DIR = true;
 extern bool home_z_before_xy;
 
@@ -48,8 +48,18 @@ move_mode_t G0_MOVE_MODE = FAST_MODE;
 		current_position[Y_AXIS] += dexarm_offset; \
 	}
 
+void dexarm_report_z_offset() {
+	SERIAL_ECHOLNPAIR_F("z offset:", dexarm_z_offset);
+}
+
+void dexarm_set_z_offset(float offset) {
+	dexarm_z_offset = offset;
+	prepare_fast_move_to_destination();
+	dexarm_report_z_offset();
+}
+
 float dexarm_apply_leveling(xyz_pos_t position) {
-	return (x_axis_scaling_factor * position.x + y_axis_scaling_factor * (position.y - 300));
+	return (x_axis_scaling_factor * position.x + y_axis_scaling_factor * (position.y - 300)) + dexarm_z_offset;
 }
 
 bool is_module_type(float module_type) {
@@ -627,7 +637,7 @@ int m1112_position(xyz_pos_t &position)
 	int diff_position_sensor_value[3];
 	int target_position_sensor_value[3] = {0};
 	static uint8_t fix_num = 0;
-
+	dexarm_z_offset = 0;
 	home_z_before_xy = false;
 	if (inverse_kinematics_dexarm(position, target_angle) == 0)
 	{

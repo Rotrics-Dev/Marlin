@@ -672,6 +672,7 @@ private:
   static void M2101();
   static void M2102();
   static void M2103();
+  static void M2110();
   static void M5201314();
   static void M5010000();
 
