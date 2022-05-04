@@ -53,7 +53,7 @@ void dexarm_report_z_offset() {
 }
 
 void dexarm_set_z_offset(float offset) {
-	dexarm_z_offset = offset;
+	dexarm_z_offset += offset;
 	prepare_fast_move_to_destination();
 	dexarm_report_z_offset();
 }
