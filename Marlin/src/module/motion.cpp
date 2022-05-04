@@ -225,7 +225,7 @@ inline void report_more_positions() {
     } else {
       position = current_position;
     }
-	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z);
+	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z, " E:", current_position.e);
     if (dexarm_rotation.is_init()) {
       SERIAL_ECHO("rotation ");
       dexarm_rotation.report_pos();
