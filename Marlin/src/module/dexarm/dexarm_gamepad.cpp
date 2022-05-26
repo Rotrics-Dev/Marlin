@@ -33,37 +33,47 @@ bool is_limit_pos(const xyz_pos_t &position)
 
 void GamepadControl::line_move_mode() {
   float move_step = 0.15;
+  float saft_step = 5;
   xyze_pos_t xyz = current_position;
+  xyze_pos_t saft_xyz = current_position;
   if (planner.movesplanned() <= 2) {
     switch (status_) {
       case GAMEPAD_LINE_MOVE_X_MIN:
         xyz.x -= move_step;
+        saft_xyz.x -= saft_step;
         break;
       case GAMEPAD_LINE_MOVE_X_MAX:
         xyz.x += move_step;
+        saft_xyz.x += saft_step;
         break;
       case GAMEPAD_LINE_MOVE_Y_MIN:
         xyz.y -= move_step;
+        saft_xyz.y -= saft_step;
         break;
       case GAMEPAD_LINE_MOVE_Y_MAX:
         xyz.y += move_step;
+        saft_xyz.y += saft_step;
         break;
       case GAMEPAD_LINE_MOVE_Z_MIN:
         xyz.z -= move_step;
+        saft_xyz.z -= saft_step;
         break;
       case GAMEPAD_LINE_MOVE_Z_MAX:
         xyz.z += move_step;
+        saft_xyz.z += saft_step;
         break;
       case GAMEPAD_RAIL_MOVE_MAX:
         xyz.e += move_step;
+        saft_xyz.e += saft_step;
         break;
       case GAMEPAD_RAIL_MOVE_MIN:
         xyz.e -= move_step;
+        saft_xyz.e -= saft_step;
         break;
       default:
         return;
     }
-    if (!is_limit_pos(xyz)) {
+    if (!is_limit_pos(saft_xyz)) {
       status_ = GAMEPAD_NO_MOVE;
     } else {
       feedRate_t old_feedrate = feedrate_mm_s;
