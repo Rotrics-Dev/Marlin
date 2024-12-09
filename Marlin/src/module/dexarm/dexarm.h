@@ -8,6 +8,7 @@
 #include "dexarm_conveyor_belt.h"
 #include "dexarm_sliding_rail.h"
 #include "dexarm_air_pump.h"
+#include "dexarm_gamepad.h"
 
 //Dexarm config
 extern int calibration_position_sensor_value[3];
@@ -35,7 +36,7 @@ extern move_mode_t G0_MOVE_MODE;
 void print_current_module_type();
 void module_position_init();
 void update_dexarm_offset(void);
-
+float dexarm_apply_leveling(xyz_pos_t position);
 void get_current_encoder();
 void get_current_position_from_position_sensor(xyz_pos_t &position);
 void set_current_position_from_position_sensor();

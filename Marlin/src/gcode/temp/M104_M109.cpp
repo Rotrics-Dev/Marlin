@@ -55,6 +55,10 @@
 void GcodeSuite::M104() {
 
   if (DEBUGGING(DRYRUN)) return;
+  if (!is_module_type(MODULE_TYPE_3D)) {
+    SERIAL_ECHOLN("The current mode is not 3DP");
+    return;
+  }
 
   #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
@@ -101,7 +105,10 @@ void GcodeSuite::M104() {
 void GcodeSuite::M109() {
 
   if (DEBUGGING(DRYRUN)) return;
-
+  if (!is_module_type(MODULE_TYPE_3D)) {
+    SERIAL_ECHOLN("The current mode is not 3DP");
+    return;
+  }
   #if ENABLED(MIXING_EXTRUDER) && MIXING_VIRTUAL_TOOLS > 1
     constexpr int8_t target_extruder = 0;
   #else

@@ -495,6 +495,7 @@ private:
   #endif
 
   static void G92();
+  static void G100();
 
   #if ENABLED(CALIBRATION_GCODE)
     static void G425();
@@ -609,11 +610,11 @@ private:
   #if DISABLED(EMERGENCY_PARSER)
     static void M108();
     static void M112();
-    static void M410();
     #if ENABLED(HOST_PROMPT_SUPPORT)
       static void M876();
     #endif
   #endif
+  static void M410();
 
   static void M110();
   static void M111();
@@ -671,6 +672,7 @@ private:
   static void M2101();
   static void M2102();
   static void M2103();
+  static void M2110();
   static void M5201314();
   static void M5010000();
 

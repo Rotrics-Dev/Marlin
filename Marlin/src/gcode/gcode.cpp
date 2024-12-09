@@ -349,6 +349,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 42: G42(); break;                                    // G42: Coordinated move to a mesh point
       #endif
 
+      case 100: G100(); break;
+
       #if ENABLED(CALIBRATION_GCODE)
         case 425: G425(); break;                                  // G425: Perform calibration with calibration cube
       #endif
@@ -465,12 +467,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #if DISABLED(EMERGENCY_PARSER)
         case 108: M108(); break;                                  // M108: Cancel Waiting
         case 112: M112(); break;                                  // M112: Full Shutdown
-        case 410: M410(); break;                                  // M410: Quickstop - Abort all the planned moves.
         #if ENABLED(HOST_PROMPT_SUPPORT)
           case 876: M876(); break;                                // M876: Handle Host prompt responses
         #endif
       #else
-        case 108: case 112: case 410:
+      case 410: M410(); break;                                    // M410: Quickstop - Abort all the planned moves.
+        case 108: case 112:
         #if ENABLED(HOST_PROMPT_SUPPORT)
           case 876:
         #endif
@@ -572,6 +574,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 2101: M2101(); break;                                    // M2101
       case 2102: M2102(); break;                                    // M2102
       case 2103: M2103(); break;                                    // M2103
+      case 2110: M2110(); break;                                    // M2110
       case 5201314: M5201314(); break;                              // M5010000
       case 5010000: M5010000(); break;                              // M5010000
 

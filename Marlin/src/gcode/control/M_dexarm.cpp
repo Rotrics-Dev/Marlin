@@ -10,9 +10,22 @@
 #if ENABLED(SENSORLESS_HOMING)
   #include "../../feature/tmc_util.h"
 #endif
+#include "../../feature/bedlevel/mbl/mesh_bed_leveling.h"
 #include "../../module/planner.h"
 #include "../../module/stepper.h"
 #include "../../module/endstops.h"
+#include "../../module/temperature.h"
+
+#define DEXARM_GRID_MAX_POINTS 5
+float dexarm_z_value[DEXARM_GRID_MAX_POINTS] = { 0 };
+
+xy_pos_t dexarm_z_pos[DEXARM_GRID_MAX_POINTS] = {
+	{0    , 352.5},
+	{0    , 247.5},
+	{52.5 , 300},
+	{-52.5, 300},
+	{0    , 300},
+};
 
 typedef enum
 {
@@ -152,6 +165,8 @@ void GcodeSuite::M888(void)
 		}
 		}
 		destination = current_position;
+		// Only 3DP does extrusion temperature protection
+		thermalManager.allow_cold_extrude = !is_module_type(MODULE_TYPE_3D);
 	}
 	else
 	{
@@ -205,37 +220,95 @@ void GcodeSuite::M890()
 	MYSERIAL0.println(position_sensor_value[2]);
 }
 
+void dexarm_manual_goto_xy(const xy_pos_t &pos) {
+  destination = current_position;
+	destination.x = pos.x;
+	destination.y = pos.y;
+	prepare_internal_move_to_destination(1000);
+	planner.synchronize();
+}
+
 void GcodeSuite::M891(void)
 {
+	static int mbl_probe_index = -1;
 	planner.synchronize();
-	float x, y;
-	x = parser.floatval('X', 999);
-	y = parser.floatval('Y', 999);
+	if (parser.seenval('S')) {
 
-	if (x < X_AXIS_SLOPE_MAX && x > X_AXIS_SLOPE_MIN)
-	{
-		MYSERIAL0.print("SET X AXIS SLOPE IS ");
-		MYSERIAL0.println(x, 5);
-	}
-	else
-	{
-		MYSERIAL0.print("X AXIS SLOPE OVER LIMIT ");
-		return;
-	}
+		int8_t state = (int8_t)parser.byteval('S', 0);
+		if (!WITHIN(state, 0, 1)) {
+			SERIAL_ECHOLNPGM("S out of range (0-1).");
+			return;
+		}
+		switch (state) {
+			case 0:
+				memset(dexarm_z_value, 0, sizeof(dexarm_z_value));
+				mbl_probe_index = 0;
+				x_axis_scaling_factor = y_axis_scaling_factor = 0;
+				state = 1;
+			case 1:
+				if (mbl_probe_index < 0) {
+					SERIAL_ECHOLNPGM("Start mesh probing with \"M891 S0\" first.");
+					return;
+				}
+				if (mbl_probe_index == 0) {
+					// Move close to the bed before the first point
+					home_all_axes();
+					planner.synchronize();
+				}
+				else {
+					if (mbl_probe_index == DEXARM_GRID_MAX_POINTS) {
+						gcode.process_subcommands_now((char *)"G92 X0 Y300 Z0 E0");
+					}
+					// Save Z for the previous mesh position
+					dexarm_z_value[mbl_probe_index - 1] = current_position.z;
+					do_blocking_move_to_z(current_position.z + 3);
+					planner.synchronize();
+				}
+				// If there's another point to sample, move there with optional lift.
+				if (mbl_probe_index < DEXARM_GRID_MAX_POINTS) {
+					dexarm_manual_goto_xy(dexarm_z_pos[mbl_probe_index++]);
+				}
+				else {
+					// After recording the last point, activate home and activate
+					mbl_probe_index = -1;
+					home_all_axes();
+					y_axis_scaling_factor = (dexarm_z_value[0] - dexarm_z_value[1]) / (dexarm_z_pos[0][1] - dexarm_z_pos[1][1]);
+					x_axis_scaling_factor = (dexarm_z_value[2] - dexarm_z_value[3]) / (dexarm_z_pos[2][0] - dexarm_z_pos[3][0]);
+					(void)settings.save();
+				}
+				break;
+		} // switch(state)
+	} else {
 
-	if (y < Y_AXIS_SLOPE_MAX && y > Y_AXIS_SLOPE_MIN)
-	{
-		MYSERIAL0.print("SET Y AXIS SLOPE IS ");
-		MYSERIAL0.println(y, 5);
+		float x, y;
+		x = parser.floatval('X', 999);
+		y = parser.floatval('Y', 999);
+
+		if (x < X_AXIS_SLOPE_MAX && x > X_AXIS_SLOPE_MIN)
+		{
+			MYSERIAL0.print("SET X AXIS SLOPE IS ");
+			MYSERIAL0.println(x, 5);
+		}
+		else
+		{
+			MYSERIAL0.print("X AXIS SLOPE OVER LIMIT ");
+			return;
+		}
+
+		if (y < Y_AXIS_SLOPE_MAX && y > Y_AXIS_SLOPE_MIN)
+		{
+			MYSERIAL0.print("SET Y AXIS SLOPE IS ");
+			MYSERIAL0.println(y, 5);
+		}
+		else
+		{
+			MYSERIAL0.print("Y AXIS SLOPE OVER LIMIT ");
+			return;
+		}
+		x_axis_scaling_factor = x;
+		y_axis_scaling_factor = y;
+		(void)settings.save();
 	}
-	else
-	{
-		MYSERIAL0.print("Y AXIS SLOPE OVER LIMIT ");
-		return;
-	}
-	x_axis_scaling_factor = x;
-	y_axis_scaling_factor = y;
-	(void)settings.save();
 }
 
 void GcodeSuite::M892()
@@ -257,16 +330,20 @@ void GcodeSuite::M893(void)
 
 void GcodeSuite::M894(void)
 {
-	int x, y, z;
-	bool check_param = parser.seen('X') & parser.seen('Y') & parser.seen('Z');
-	if (check_param)
-	{
-		MYSERIAL0.println("Param check is all ok");
-		x = parser.floatval('X', 999);
-		y = parser.floatval('Y', 999);
-		z = parser.floatval('Z', 999);
-		process_encoder(x, y, z);
+	int xyz[3] = {0};
+	planner.synchronize();
+	LOOP_ABC(axis) { xyz[axis] = position_sensor_value_read(axis); }
+
+	if (parser.seen('X')) {
+		xyz[X_AXIS] = parser.floatval('X');
 	}
+	if (parser.seen('Y')) {
+		xyz[Y_AXIS] = parser.floatval('Y');
+	}
+	if (parser.seen('Z')) {
+		xyz[Z_AXIS] = parser.floatval('Z');
+	}
+	process_encoder(xyz[X_AXIS], xyz[Y_AXIS], xyz[Z_AXIS]);
 }
 
 void GcodeSuite::M895(void)

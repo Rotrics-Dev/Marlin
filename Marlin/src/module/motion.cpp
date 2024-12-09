@@ -221,10 +221,11 @@ inline void report_more_positions() {
     xyz_pos_t position;
     if (planner.has_blocks_queued()) {
 	    get_current_position_from_position_sensor(position);
+      position.z -= dexarm_apply_leveling(position);
     } else {
       position = current_position;
     }
-	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z);
+	  SERIAL_ECHOLNPAIR("Real position X:", position.x, " Y:", position.y, " Z:", position.z, " E:", current_position.e);
     if (dexarm_rotation.is_init()) {
       SERIAL_ECHO("rotation ");
       dexarm_rotation.report_pos();

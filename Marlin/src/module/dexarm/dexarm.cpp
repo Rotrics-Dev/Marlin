@@ -10,6 +10,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "dexarm.h"
 #include "../planner.h"
+#include "../temperature.h"
 
 int calibration_position_sensor_value[3]; //Set by M889
 int door_open_message_counter;
@@ -33,7 +34,7 @@ bool position_init_flag = false; //DexArm will not move without position init.
 bool current_position_flag = false;
 
 float current_position_init[XYZE] = {START_X, START_Y, START_Z, 0.0};
-
+float dexarm_z_offset = 0;
 bool INVERT_E0_DIR = true;
 extern bool home_z_before_xy;
 
@@ -46,6 +47,20 @@ move_mode_t G0_MOVE_MODE = FAST_MODE;
 		LOOP_XYZE(i) { current_position[i] = current_position_init[i]; } \
 		current_position[Y_AXIS] += dexarm_offset; \
 	}
+
+void dexarm_report_z_offset() {
+	SERIAL_ECHOLNPAIR_F("z offset:", dexarm_z_offset);
+}
+
+void dexarm_set_z_offset(float offset) {
+	dexarm_z_offset += offset;
+	prepare_fast_move_to_destination();
+	dexarm_report_z_offset();
+}
+
+float dexarm_apply_leveling(xyz_pos_t position) {
+	return (x_axis_scaling_factor * position.x + y_axis_scaling_factor * (position.y - 300)) + dexarm_z_offset;
+}
 
 bool is_module_type(float module_type) {
 	return fabs(front_module_offset - module_type) < 0.1;
@@ -91,6 +106,10 @@ void module_position_init()
 		laser_protection_enable_flag = true;
 		//MYSERIAL0.println("The current module is LASER");
 	}
+	enable_all_steppers();
+	set_current_position_from_position_sensor();
+	xyze_pos_t position = current_position;
+	planner.set_position_mm(position);
 }
 
 int get_position_sensor_diff(int target_position, int current_position)
@@ -159,7 +178,9 @@ void set_current_position_from_position_sensor(){
 	angle_diff[E_AXIS] = current_position.e;
 	planner.set_machine_position_mm(angle_diff);
 	forward_kinematics_DEXARM_position(angle_diff, position);
+	position.z -= dexarm_apply_leveling(position);
 	current_position = position;
+	position_init_flag = true;
 }
 
 void process_encoder(int x, int y, int z){
@@ -499,7 +520,7 @@ char inverse_kinematics_dexarm_xy_legace(const xyz_pos_t &position, abc_pos_t &a
 	float z = position.z;
 
 	//apply_leveling
-	z += (x_axis_scaling_factor * x + y_axis_scaling_factor * (y - 300));
+	z += dexarm_apply_leveling(position);
 
 	float tmps = sqrt(x * x + y * y);
 
@@ -555,7 +576,7 @@ char inverse_kinematics_dexarm(const xyz_pos_t &position, abc_pos_t &angle)
 	float z = position.z;
 
 	//apply_leveling
-	z += (x_axis_scaling_factor * x + y_axis_scaling_factor * (y - 300));
+	z += dexarm_apply_leveling(position);
 
 	float tmps = sqrt(x * x + y * y);
 
@@ -616,7 +637,7 @@ int m1112_position(xyz_pos_t &position)
 	int diff_position_sensor_value[3];
 	int target_position_sensor_value[3] = {0};
 	static uint8_t fix_num = 0;
-
+	dexarm_z_offset = 0;
 	home_z_before_xy = false;
 	if (inverse_kinematics_dexarm(position, target_angle) == 0)
 	{
@@ -845,9 +866,13 @@ void dexarm_init() {
 	if (is_module_type(MODULE_TYPE_ROTARY)) {
 		dexarm_rotation.init();
 	}
+	if (!is_module_type(_3D_MODULE_OFFSET)) {
+		thermalManager.allow_cold_extrude = true;
+	}
 	dexarm_air_pump.init();
 }
 
 void dexarm_loop() {
 	dexarm_rotation.loop();
+	gamepad_control.loop();
 }

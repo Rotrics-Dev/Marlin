@@ -20,41 +20,19 @@
  *
  */
 
-#include "../../inc/MarlinConfig.h"
-
-
 #include "../gcode.h"
-#include "../../MarlinCore.h" // for wait_for_heatup, kill, quickstop_stepper
-#include "../../module/dexarm/dexarm.h"
-#if DISABLED(EMERGENCY_PARSER)
-/**
- * M108: Stop the waiting for heaters in M109, M190, M303. Does not affect the target temperature.
- */
-void GcodeSuite::M108() {
-  #if HAS_RESUME_CONTINUE
-    wait_for_user = false;
-  #endif
-  wait_for_heatup = false;
+#include "../../module/motion.h"
+
+#if ENABLED(PLATFORM_M997_SUPPORT)
+
+void dexarm_set_z_offset(float offset);
+void dexarm_report_z_offset();
+void GcodeSuite::M2110() {
+  if (parser.seen('Z')) {
+    dexarm_set_z_offset(parser.floatval('Z', 0));
+  } else {
+    dexarm_report_z_offset();
+  }
 }
 
-/**
- * M112: Full Shutdown
- */
-void GcodeSuite::M112() {
-  kill(M112_KILL_STR, nullptr, true);
-}
-
-#endif // !EMERGENCY_PARSER
-
-/**
- * M410: Quickstop - Abort all planned moves
- *
- * This will stop the carriages mid-move, so most likely they
- * will be out of sync with the stepper position after this.
- */
-void GcodeSuite::M410() {
-  quickstop_stepper();
-  set_current_position_from_position_sensor();
-}
-
-
+#endif
